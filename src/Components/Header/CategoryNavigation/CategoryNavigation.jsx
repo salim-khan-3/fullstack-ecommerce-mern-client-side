@@ -90,7 +90,7 @@ const CategoryNavigation = () => {
     "px-5 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-[#2bbef9] block transition-colors border-b border-gray-50 last:border-0";
 
   return (
-    <div className="w-full bg-white border-b border-gray-100 shadow-sm">
+    <div className="w-full  bg-white border-b border-gray-100 shadow-sm">
       <div className="container mx-auto px-4 flex items-center justify-between lg:gap-24">
         
         {/* 1. ALL CATEGORIES - Desktop Only */}

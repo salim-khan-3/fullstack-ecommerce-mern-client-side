@@ -22,7 +22,7 @@ const MiddleHeader = () => {
     "block py-2.5 pl-4 text-sm text-gray-500 hover:text-red-600 border-l border-gray-100 ml-2";
 
   return (
-    <div className="bg-white w-full border-b border-gray-100 sticky top-0 z-50">
+    <div className="bg-white w-full border-b border-gray-100 z-50">
       <div className="container mx-auto px-4 py-4 lg:py-6 flex items-center justify-between gap-5">
         {/* 1. Logo Section (Always Left) */}
         <div className="flex items-center gap-8">
