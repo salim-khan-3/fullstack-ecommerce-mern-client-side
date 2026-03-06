@@ -3,43 +3,41 @@ import Banner from "./Banner/Banner";
 import CategorySideNav from "./sideNav/CategorySideNav ";
 import FeaturedCategories from "./FeaturedCategories/FeaturedCategories";
 import PromoSection from "./PromoSection/PromoSection";
-import LeftBanner from "./LeftBanner/LeftBanner";
+// import LeftBanner from "./LeftBanner/LeftBanner";
 
 import NewProduct from "./NewProduct/NewProduct";
 import NewsletterSection from "./NewsletterSection/NewsletterSection";
 import Newsletter from "./NewsletterSection/NewsletterSection";
 import FeaturedProduct from "./FeaturedProduct/FeaturedProduct";
+import PromoBannerStack from "./PromoBannerStack/PromoBannerStack ";
 
 const Home = () => {
   return (
     <div className="">
       <div className=" container mx-auto px-4 ">
-       <Banner></Banner>
+        <Banner></Banner>
       </div>
       <FeaturedCategories></FeaturedCategories>
 
       <section>
         <div className="container mx-auto py-10">
- <div className="flex flex-col-reverse lg:grid lg:grid-cols-4 gap-10 items-start">
-  
-  {/* Left Side Banner (Mobile-e niche thakbe, Desktop-e bame) */}
-  <div className="w-full lg:col-span-1">
-    <LeftBanner />
-  </div>
+          <div className="flex flex-col-reverse lg:grid lg:grid-cols-4 gap-10 items-start">
+            {/* Left Side Banner (Mobile-e niche thakbe, Desktop-e bame) */}
+            <div className="w-full lg:col-span-1">
+              <PromoBannerStack></PromoBannerStack>
+            </div>
 
-  {/* Right Side Content (Mobile-e upore thakbe, Desktop-e dane) */}
-  <div className="w-full lg:col-span-3">
-    <div className="flex flex-col gap-10">
-      <FeaturedProduct />
-      <NewProduct />
-    </div>
-  </div>
-  
-</div>
+            {/* Right Side Content (Mobile-e upore thakbe, Desktop-e dane) */}
+            <div className="w-full lg:col-span-3">
+              <div className="flex flex-col gap-10">
+                <FeaturedProduct />
+                <PromoSection></PromoSection>
+                <NewProduct />
+              </div>
+            </div>
+          </div>
         </div>
       </section>
-
-      <PromoSection></PromoSection>
 
       <section>
         <Newsletter></Newsletter>
@@ -76,7 +74,7 @@ export default Home;
 //       <section>
 //         <div className="container mx-auto py-10">
 //  <div className="flex flex-col-reverse lg:grid lg:grid-cols-4 gap-10 items-start">
-  
+
 //   {/* Left Side Banner (Mobile-e niche thakbe, Desktop-e bame) */}
 //   <div className="w-full lg:col-span-1">
 //     <LeftBanner />
@@ -89,7 +87,7 @@ export default Home;
 //       <NewProduct />
 //     </div>
 //   </div>
-  
+
 // </div>
 //         </div>
 //       </section>

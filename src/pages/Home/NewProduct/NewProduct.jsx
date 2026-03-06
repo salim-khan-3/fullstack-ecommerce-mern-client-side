@@ -1,25 +1,14 @@
-import React from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import useEmblaCarousel from "embla-carousel-react";
-import { ChevronRight } from "lucide-react";
-import pp from "../../../assets/cyber-monday-shopping-sales.jpg";
-import ProductCard from "../../../Components/cards/ProductCard/ProductCard";
+import { ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
+import ProductCard from "../FeaturedProduct/ProductCard";
+import { getNewProducts } from "../../../utils/api/productApi";
 
 const NewProduct = () => {
-  const products = [
-    { id: 1, name: "Werther's Original Caramel Hard Candies", price: 14.97, oldPrice: 20.0, discount: "26%", img: pp, rating: 5 },
-    { id: 2, name: "All Natural Italian-Style Chicken Meatballs", price: 7.25, oldPrice: 9.35, discount: "23%", img: pp, rating: 4, recommended: true },
-    { id: 3, name: "Angie's Boomchickapop Sweet & Salty Kettle Corn", price: 3.29, oldPrice: 4.29, discount: "24%", img: pp, rating: 5 },
-    { id: 4, name: "Field Roast Chao Cheese Creamy Original", price: 19.5, oldPrice: 24.0, discount: "19%", img: pp, rating: 5, organic: true },
-    { id: 5, name: "Fresh Organic Honey Crushed Grapes", price: 12.0, oldPrice: 15.0, discount: "20%", img: pp, rating: 5 },
-    { id: 6, name: "Werther's Original Caramel Hard Candies", price: 14.97, oldPrice: 20.0, discount: "26%", img: pp, rating: 5 },
-    { id: 7, name: "All Natural Italian-Style Chicken Meatballs", price: 7.25, oldPrice: 9.35, discount: "23%", img: pp, rating: 4 },
-    { id: 8, name: "Angie's Boomchickapop Sweet & Salty Kettle Corn", price: 3.29, oldPrice: 4.29, discount: "24%", img: pp, rating: 5 },
-    { id: 9, name: "Popcorn Sweet & Salty", price: 3.29, oldPrice: 4.29, discount: "24%", img: pp, rating: 5 },
-    { id: 10, name: "Kettle Corn", price: 3.29, oldPrice: 4.29, discount: "24%", img: pp, rating: 5 },
-  ];
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Embla setup: Mobile-e active thakbe, Laptop screen (1024px) theke active: false (mane slider off)
-  const [emblaRef] = useEmblaCarousel({
+  const [emblaRef, emblaApi] = useEmblaCarousel({
     breakpoints: {
       "(min-width: 1024px)": { active: false },
     },
@@ -27,42 +16,112 @@ const NewProduct = () => {
     dragFree: true,
   });
 
-  return (
-    <div className="flex-grow mb-10 px-4 md:px-0">
-      {/* Header Section */}
-      <div className="flex justify-between items-end mb-8 border-b border-gray-100 pb-4">
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+
+  useEffect(() => {
+    getNewProducts(10)
+      .then((data) => setProducts(data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return (
+    <div className="mb-12">
+      <div className="flex items-end justify-between mb-8">
         <div>
-          <h3 className="text-xl font-bold text-gray-900 uppercase tracking-tight">
-            NEW PRODUCTS
-          </h3>
-          <p className="text-xs text-gray-400 font-medium mt-1 uppercase tracking-wider">
-            New products with updated stocks.
-          </p>
+          <div className="h-3 w-24 bg-gray-200 rounded animate-pulse mb-3" />
+          <div className="h-8 w-40 bg-gray-200 rounded animate-pulse mb-1" />
+          <div className="h-8 w-32 bg-gray-100 rounded animate-pulse" />
         </div>
-
-        <button className="flex items-center gap-2 border border-gray-200 rounded-full px-5 py-2 text-xs font-bold text-gray-500 hover:bg-blue-600 hover:text-white transition-all shadow-sm group">
-          View All
-          <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-        </button>
       </div>
-
-      {/* Slider & Grid Wrapper */}
-      <div className="overflow-hidden lg:overflow-visible" ref={emblaRef}>
-        <div className="flex lg:grid lg:grid-cols-4 lg:gap-6">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="flex-[0_0_50%] min-w-0 md:flex-[0_0_33.33%] lg:flex-none lg:w-full px-2 lg:px-0"
-            >
-              <ProductCard product={product} />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className="rounded-xl overflow-hidden border border-gray-100">
+            <div className="h-44 bg-gray-100 animate-pulse" />
+            <div className="p-3 space-y-2">
+              <div className="h-3 bg-gray-100 rounded animate-pulse" />
+              <div className="h-3 w-2/3 bg-gray-100 rounded animate-pulse" />
+              <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse" />
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
+  );
+
+  if (!loading && products.length === 0) return null;
+
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+        .np-bebas { font-family: 'Bebas Neue', sans-serif; }
+      `}</style>
+
+      <div className="mb-12">
+
+        {/* Header */}
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-[2px] bg-emerald-500 rounded-full" />
+              <span className="text-[10px] font-bold tracking-[3px] text-emerald-500 uppercase">
+                Latest Arrivals
+              </span>
+            </div>
+            <div className="np-bebas leading-none">
+              <div className="text-[42px] text-gray-900 tracking-wide">NEW</div>
+              <div
+                className="text-[42px] tracking-wide"
+                style={{ WebkitTextStroke: "1.5px #111", color: "transparent" }}
+              >
+                PRODUCTS
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 mt-2 leading-relaxed max-w-[260px]">
+              Fresh arrivals straight from our latest stock — updated daily.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-end gap-3 pb-1">
+            <button className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-gray-700 uppercase hover:text-gray-900 transition-colors duration-150">
+              View All Products <ArrowUpRight size={13} />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="w-16 h-[2px] bg-gray-200 rounded-full" />
+              <button
+                onClick={scrollPrev}
+                className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-900 hover:border-gray-900 hover:text-white transition-all duration-150"
+              >
+                <ChevronLeft size={15} />
+              </button>
+              <button
+                onClick={scrollNext}
+                className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-900 hover:border-gray-900 hover:text-white transition-all duration-150"
+              >
+                <ChevronRight size={15} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Slider & Grid */}
+        <div className="overflow-hidden lg:overflow-visible" ref={emblaRef}>
+          <div className="flex lg:grid lg:grid-cols-4 lg:gap-4">
+            {products.map((product) => (
+              <div
+                key={product._id}
+                className="flex-[0_0_50%] min-w-0 md:flex-[0_0_33.33%] lg:flex-none lg:w-full px-2 lg:px-0"
+              >
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 
 export default NewProduct;
-
-
