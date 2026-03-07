@@ -247,7 +247,7 @@ const CategoryNavigation = () => {
 
           {/* ── NAV LINKS ── */}
           <nav className="flex-1 cn-scroll overflow-x-auto overflow-y-visible">
-            <ul className="flex items-center ">
+            <ul className="flex items-center justify-end">
               {navLinks.map((nav) => {
                 const isOpen = openNav === nav.label;
                 return (
