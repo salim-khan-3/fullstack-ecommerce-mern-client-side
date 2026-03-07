@@ -1,133 +1,191 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
+import {
+  Menu,
+  Search,
+  ShoppingBag,
+  User,
+  X,
+  ChevronDown,
+  LogOut,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import DropdownModal from "./DropdownModal";
+import Logo from "../../layouts/Logo/Logo";
 import { MyContext } from "../../../App";
-import { ChevronDown, Search, X } from "lucide-react";
 
-const DropdownModal = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  // const [selectedCountry, setSelectedCountry] = useState("Georgia");
-  const { countryList, selectedCountry, setSelectedCountry } =
-    useContext(MyContext);
-
-  const [filteredList, setFilteredList] = useState([]);
-
-  useEffect(() => {
-    setFilteredList(countryList);
-  }, [countryList, isOpen]);
-
-  // 2. Search Functionality
-  const filterList = (e) => {
-    const keyword = e.target.value.toLowerCase();
-
-    if (keyword !== "") {
-      const list = countryList.filter((item) => {
-        return item.country.toLowerCase().includes(keyword);
-      });
-      setFilteredList(list);
-    } else {
-      setFilteredList(countryList);
-    }
-  };
+const MiddleHeader = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { isLogin, setIsLogin } = useContext(MyContext);
+  const navItemClass =
+    "flex items-center justify-between py-3.5 text-sm font-semibold text-gray-700 hover:text-red-600 transition-colors border-b border-gray-50";
+  const dropdownItemClass =
+    "block py-2.5 pl-4 text-sm text-gray-500 hover:text-red-600 border-l border-gray-100 ml-2";
 
   return (
-    <div>
-      <button
-        onClick={() => setIsOpen(true)}
-        className="flex w-full flex-1 items-center justify-between gap-4 border border-gray-200 rounded-lg px-5 py-2.5 text-sm shadow-sm hover:bg-white hover:border-blue-400 hover:shadow-md transition-all duration-300 bg-gray-50/50"
-      >
-        <div className="flex flex-col text-left">
-          <span className="block text-[10px] text-gray-500 uppercase font-extrabold tracking-widest mb-0.5">
-            Your Location
-          </span>
-          <span
-            className={`font-bold text-base truncate max-w-[150px] ${
-              selectedCountry ? "text-blue-700" : "text-gray-400"
-            }`}
-          >
-            {selectedCountry || "Select Location"}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 text-gray-400 border-l pl-3 border-gray-200">
-          <Search size={16} />
-          <ChevronDown
-            size={16}
-            className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
-          />
-        </div>
-      </button>
-
-      {/* Modal Overlay */}
-      {isOpen && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
-          {/* Backdrop with Blur */}
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-            onClick={() => setIsOpen(false)}
-          ></div>
-
-          {/* Modal Content */}
-          <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden transform transition-all animate-in fade-in zoom-in duration-300">
-            {/* Modal Header */}
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-bold text-gray-800">
-                  Choose your Location
-                </h3>
-                <p className="text-xs text-gray-400">
-                  Enter your address and we will specify the offer for your
-                  area.
-                </p>
-              </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <X size={20} className="text-gray-500" />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6">
-              {/* Search Bar inside Modal */}
-              <div className="relative mb-4">
-                <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                  size={16}
-                />
-                <input
-                  type="text"
-                  onChange={filterList}
-                  placeholder="Search your area..."
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                />
-              </div>
-
-              {/* Country List */}
-              <ul className="max-h-[300px] overflow-y-auto space-y-1 custom-scrollbar">
-                {filteredList.map((item, index) => (
-                  <li key={index}>
-                    <button
-                      onClick={() => {
-                        setSelectedCountry(item.country);
-                        setIsOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                        selectedCountry === item.country
-                          ? "bg-blue-50 text-blue-600 border border-blue-100"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-blue-600"
-                      }`}
-                    >
-                      {item.country} {/* display the string */}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+    <div className="bg-white w-full border-b border-gray-100 z-50">
+      <div className="container mx-auto px-4 py-4 lg:py-6 flex items-center justify-between gap-5">
+        {/* 1. Logo Section (Always Left) */}
+        <div className="flex items-center gap-8">
+          <Logo />
+          {/* Desktop Dropdown */}
+          <div className="hidden lg:block">
+            <DropdownModal />
           </div>
         </div>
+
+        {/* 2. Search Section (Desktop Only) */}
+        <div className="hidden flex-1 md:flex relative w-full max-w-[600px] mx-auto">
+          <input
+            type="text"
+            placeholder="Search for products..."
+            className="w-full bg-[#f3f4f7] border border-gray-100 rounded-lg py-3 px-5 text-[15px] outline-none focus:bg-white focus:ring-1 focus:ring-red-200 transition-all"
+          />
+          <Search
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+            size={20}
+          />
+        </div>
+
+        {/* 3. Action Icons (Cart & Menu on Right for Mobile) */}
+        <div className="flex items-center gap-2 sm:gap-4 lg:gap-6">
+          <div className="hidden lg:block">
+            {isLogin ? (
+              <div className="p-2.5 border border-gray-200 rounded-full cursor-pointer hover:bg-gray-50">
+                <User className="text-gray-700" size={20} />
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="px-4 py-2 border border-red-500 text-red-600 rounded-md text-sm font-semibold hover:bg-red-50 transition-colors"
+              >
+                Sign In
+              </Link>
+            )}
+          </div>
+
+          {/* Cart Icon (Always Left of Menu on Mobile) */}
+          <div className="flex items-center gap-3 cursor-pointer group">
+            <div className="relative p-2.5 bg-red-50 rounded-full group-hover:bg-red-100 transition-colors">
+              <Link to={"./cart"}>
+                <ShoppingBag size={22} className="text-red-600" />
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
+                  2
+                </span>
+              </Link>
+            </div>
+            <div className="hidden lg:block text-sm font-bold text-gray-800">
+              $0.00
+            </div>
+          </div>
+
+          {/* Mobile Menu Icon (Always Right) */}
+          <div className="lg:hidden p-2 ml-1">
+            <Menu
+              className="text-gray-700 cursor-pointer"
+              size={28}
+              onClick={() => setIsSidebarOpen(true)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* --- MOBILE SIDEBAR --- */}
+      {/* Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-[60] lg:hidden backdrop-blur-sm transition-opacity"
+          onClick={() => setIsSidebarOpen(false)}
+        />
       )}
+
+      {/* Sidebar Content */}
+      <div
+        className={`fixed top-0 right-0 h-full w-[280px] bg-white z-[70] shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto ${isSidebarOpen ? "translate-x-0" : "translate-x-full"}`}
+      >
+        <div className="p-6 flex flex-col h-full">
+          {/* Close Button & Logo */}
+          <div className="flex items-center justify-between mb-8 border-b pb-4">
+            <Logo />
+            <div
+              className="p-2 hover:bg-gray-100 rounded-full cursor-pointer"
+              onClick={() => setIsSidebarOpen(false)}
+            >
+              <X className="text-gray-500" size={24} />
+            </div>
+          </div>
+
+          {/* Sidebar Search */}
+          <div className="relative mb-6">
+            <DropdownModal></DropdownModal>
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="flex-1 overflow-y-auto">
+            <ul className="flex flex-col">
+              <li>
+                <Link to="/" className={navItemClass}>
+                  HOME <ChevronDown size={14} className="opacity-50" />
+                </Link>
+                <div className="bg-gray-50/50">
+                  <Link to="/home-1" className={dropdownItemClass}>
+                    Home Style 1
+                  </Link>
+                  <Link to="/home-2" className={dropdownItemClass}>
+                    Home Style 2
+                  </Link>
+                </div>
+              </li>
+              <li>
+                <Link to="/men" className={navItemClass}>
+                  MEN <ChevronDown size={14} className="opacity-50" />
+                </Link>
+              </li>
+              <li>
+                <Link to="/women" className={navItemClass}>
+                  WOMEN <ChevronDown size={14} className="opacity-50" />
+                </Link>
+              </li>
+              <li>
+                <Link to="/beauty" className={navItemClass}>
+                  BEAUTY
+                </Link>
+              </li>
+              <li>
+                <Link to="/watches" className={navItemClass}>
+                  WATCHES
+                </Link>
+              </li>
+              <li>
+                <Link to="/kids" className={navItemClass}>
+                  KIDS
+                </Link>
+              </li>
+              <li>
+                <Link to="/blog" className={navItemClass}>
+                  BLOG
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className={navItemClass}>
+                  CONTACT
+                </Link>
+              </li>
+            </ul>
+          </nav>
+
+          {/* Logout Button */}
+          <div className="mt-6 border-t pt-4">
+            <button className="flex items-center gap-3 text-gray-600 font-bold w-full py-3 px-2 hover:text-red-600 transition-colors">
+              <LogOut size={20} />
+              LOGOUT
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default DropdownModal;
+export default MiddleHeader;
+
+
