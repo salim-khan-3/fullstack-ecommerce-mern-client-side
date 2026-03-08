@@ -147,7 +147,7 @@ const Banner = () => {
         }
       `}</style>
 
-      <div className="relative w-full overflow-hidden rounded-2xl lg:rounded-3xl banner-body" style={{ height: "clamp(300px, 55vw, 680px)" }}>
+      <div className="relative w-full mt-10 overflow-hidden rounded-2xl lg:rounded-3xl banner-body" style={{ height: "clamp(300px, 55vw, 680px)" }}>
 
         {/* Embla Carousel */}
         <div className="h-full w-full" ref={emblaRef}>
