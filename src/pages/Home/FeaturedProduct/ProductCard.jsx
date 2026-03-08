@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Heart, Maximize2, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ProductCard = ({ product, onQuickView }) => {
+  const navigate = useNavigate();
   const [isWished, setIsWished] = useState(false);
   const [currentImg, setCurrentImg] = useState(0);
   const intervalRef = useRef(null);
@@ -29,15 +31,20 @@ const ProductCard = ({ product, onQuickView }) => {
 
   useEffect(() => () => clearInterval(intervalRef.current), []);
 
+  const handleCardClick = () => {
+    navigate(`/product/${product._id}`);
+  };
+
   return (
-    <div className="w-full p-2">
+    <div className="w-full p-2 max-w-[280px]">
       <div
-        className="group bg-[#F8F8F8] rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-md"
+        className="group bg-[#F1F1F1] rounded-[15px] overflow-hidden border border-gray-200 shadow-sm cursor-pointer transition-all duration-300"
+        onClick={handleCardClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {/* Image */}
-        <div className="relative overflow-hidden" style={{ height: "200px" }}>
+        {/* Image Section */}
+        <div className="relative overflow-hidden h-[250px]">
           {images.length > 0 ? (
             images.map((img, idx) => (
               <img
@@ -54,45 +61,27 @@ const ProductCard = ({ product, onQuickView }) => {
             </div>
           )}
 
-          {/* Discount badge */}
+          {/* Discount badge - Exact Light Blue */}
           <div className="absolute top-3 left-3 z-10">
-            <span className="bg-[#4CC9F0] text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+            <span className="bg-[#38BDF8] text-white text-[12px] font-bold px-2 py-1 rounded-full">
               {discount}%
             </span>
           </div>
 
-          {/* Image dots — শুধু multiple images থাকলে */}
-          {images.length > 1 && (
-            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
-              {images.map((_, idx) => (
-                <div
-                  key={idx}
-                  className="rounded-full transition-all duration-300"
-                  style={{
-                    width: currentImg === idx ? "8px" : "5px",
-                    height: currentImg === idx ? "8px" : "5px",
-                    backgroundColor:
-                      currentImg === idx ? "white" : "rgba(255,255,255,0.5)",
-                  }}
-                />
-              ))}
-            </div>
-          )}
-
           {/* Hover icons */}
           <div className="absolute top-3 right-3 z-10 flex flex-col gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
             <button
-              onClick={() => onQuickView?.(product)}
-              className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50 text-gray-700"
+              onClick={(e) => { e.stopPropagation(); onQuickView?.(product); }}
+              className="p-1.5 bg-white rounded-full shadow-sm hover:bg-gray-50 text-gray-700"
             >
-              <Maximize2 size={16} />
+              <Maximize2 size={14} />
             </button>
             <button
-              onClick={() => setIsWished(!isWished)}
-              className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50"
+              onClick={(e) => { e.stopPropagation(); setIsWished(!isWished); }}
+              className="p-1.5 bg-white rounded-full shadow-sm hover:bg-gray-50"
             >
               <Heart
-                size={16}
+                size={14}
                 fill={isWished ? "#EF4444" : "none"}
                 className={isWished ? "text-red-500" : "text-gray-600"}
               />
@@ -100,33 +89,33 @@ const ProductCard = ({ product, onQuickView }) => {
           </div>
         </div>
 
-        {/* Info */}
-        <div className="p-4 bg-white">
-          <h3 className="text-[14px] text-gray-800 font-medium line-clamp-1 mb-1">
+        {/* Info Section - Matches ScreenShot */}
+        <div className="p-4 space-y-2">
+          <h3 className="text-[16px] text-[#444] font-normal line-clamp-1">
             {product.name}
           </h3>
 
-          <p className={`text-[12px] font-semibold mb-2 ${inStock ? "text-green-600" : "text-red-400"}`}>
+          <p className="text-[15px] font-medium text-[#4CAF50]">
             {inStock ? "In Stock" : "Out of Stock"}
           </p>
 
-          <div className="flex gap-0.5 mb-3">
+          <div className="flex gap-0.5">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                size={14}
-                fill={i < rating ? "#F97316" : "none"}
-                className={i < rating ? "text-[#F97316]" : "text-gray-300"}
+                size={16}
+                fill={i < rating ? "#FFB400" : "none"}
+                className={i < rating ? "text-[#FFB400]" : "text-gray-300"}
               />
             ))}
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-[14px] text-gray-400 line-through">
-              Rs {Number(oldPrice).toLocaleString()}
+          <div className="flex items-center gap-2 pt-1">
+            <span className="text-[16px] text-gray-500 line-through font-normal">
+              Rs {Number(oldPrice)}
             </span>
-            <span className="text-[18px] font-bold text-[#D90429]">
-              Rs {realPrice.toLocaleString()}
+            <span className="text-[18px] font-semibold text-[#D32F2F]">
+              Rs {realPrice}
             </span>
           </div>
         </div>
@@ -146,17 +135,16 @@ export default ProductCard;
 
 
 
-
-
-
-// import React, { useState, useEffect, useRef } from "react";
+// import React, { useState, useRef, useEffect } from "react";
 // import { Heart, Maximize2, Star } from "lucide-react";
+// import { useNavigate } from "react-router-dom";
 
 // const ProductCard = ({ product, onQuickView }) => {
+//   const navigate = useNavigate();
 //   const [isWished, setIsWished] = useState(false);
 //   const [currentImg, setCurrentImg] = useState(0);
-//   const [isHovered, setIsHovered] = useState(false);
-  
+//   const intervalRef = useRef(null);
+
 //   const images = product.images || [];
 //   const realPrice = Number(product.price);
 //   const oldPrice = product.oldPrice || Math.round(realPrice / 0.88);
@@ -164,100 +152,130 @@ export default ProductCard;
 //   const inStock = product.countInStock > 0;
 //   const rating = Math.round(product.rating || 5);
 
-//   // অটো-স্ক্রল লজিক
-//   useEffect(() => {
-//     let interval;
-//     if (isHovered && images.length > 1) {
-//       interval = setInterval(() => {
-//         setCurrentImg((prev) => (prev + 1) % images.length);
-//       }, 1200); // ১.২ সেকেন্ড পর পর ইমেজ চেঞ্জ হবে
-//     } else {
-//       setCurrentImg(0); // হোভার ছেড়ে দিলে প্রথম ইমেজে ফিরে যাবে
-//       clearInterval(interval);
-//     }
-//     return () => clearInterval(interval);
-//   }, [isHovered, images.length]);
+//   const handleMouseEnter = () => {
+//     if (images.length <= 1) return;
+//     let idx = 0;
+//     intervalRef.current = setInterval(() => {
+//       idx = (idx + 1) % images.length;
+//       setCurrentImg(idx);
+//     }, 800);
+//   };
+
+//   const handleMouseLeave = () => {
+//     clearInterval(intervalRef.current);
+//     setCurrentImg(0);
+//   };
+
+//   useEffect(() => () => clearInterval(intervalRef.current), []);
+
+//   const handleCardClick = () => {
+//     navigate(`/product/${product._id}`);
+//   };
 
 //   return (
-//     <div className="w-full max-w-[260px] p-2">
-//       <div 
-//         className="group bg-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100"
-//         onMouseEnter={() => setIsHovered(true)}
-//         onMouseLeave={() => setIsHovered(false)}
+//     <div className="w-full p-2">
+//       <div
+//         className="group bg-white rounded-2xl overflow-hidden transition-all duration-500 
+//                    shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] 
+//                    hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] 
+//                    hover:-translate-y-1 border border-gray-100/50 cursor-pointer"
+//         onClick={handleCardClick}
+//         onMouseEnter={handleMouseEnter}
+//         onMouseLeave={handleMouseLeave}
 //       >
-//         {/* --- ইমেজ সেকশন (উচ্চতা কমানো হয়েছে) --- */}
-//         <div className="relative h-44 overflow-hidden bg-[#F8F8F8]">
-//           {images.map((img, index) => (
-//             <img
-//               key={index}
-//               src={img}
-//               alt={`${product.name} ${index}`}
-//               className={`absolute inset-0 w-full h-full object-contain transition-all duration-700 ease-in-out ${
-//                 currentImg === index ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
-//               }`}
-//             />
-//           ))}
+//         {/* Image Section */}
+//         <div className="relative overflow-hidden bg-[#F8F8F8]" style={{ height: "200px" }}>
+//           {images.length > 0 ? (
+//             images.map((img, idx) => (
+//               <img
+//                 key={idx}
+//                 src={img}
+//                 alt={product.name}
+//                 className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out"
+//                 style={{ opacity: currentImg === idx ? 1 : 0 }}
+//               />
+//             ))
+//           ) : (
+//             <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400 text-xs">
+//               No Image
+//             </div>
+//           )}
 
-//           {/* ডিসকাউন্ট ব্যাজ */}
-//           <div className="absolute top-2 left-2 z-10">
-//             <span className="bg-[#34A8FF] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-//               {discount}%
+//           {/* Discount badge */}
+//           <div className="absolute top-3 left-3 z-10">
+//             <span className="bg-[#4CC9F0] text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+//               {discount}% OFF
 //             </span>
 //           </div>
 
-//           {/* হোভার অ্যাকশন বাটন */}
-//           <div className="absolute top-2 right-2 z-10 flex flex-col gap-1.5 translate-x-10 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
-//             <button 
-//               onClick={(e) => { e.stopPropagation(); onQuickView?.(product); }}
-//               className="p-1.5 bg-white rounded-full shadow-md hover:bg-gray-50 text-gray-700"
-//             >
-//               <Maximize2 size={14} />
-//             </button>
-//             <button 
-//               onClick={(e) => { e.stopPropagation(); setIsWished(!isWished); }}
-//               className="p-1.5 bg-white rounded-full shadow-md hover:bg-gray-50"
-//             >
-//               <Heart size={14} fill={isWished ? "#EF4444" : "none"} className={isWished ? "text-red-500" : "text-gray-600"} />
-//             </button>
-//           </div>
-
-//           {/* স্ক্রল ইন্ডিকেটর ডটস */}
-//           {isHovered && images.length > 1 && (
-//             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
-//               {images.map((_, i) => (
-//                 <div 
-//                   key={i}
-//                   className={`h-1 rounded-full transition-all duration-300 ${currentImg === i ? "w-3 bg-[#34A8FF]" : "w-1 bg-gray-300"}`}
+//           {/* Image dots */}
+//           {images.length > 1 && (
+//             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
+//               {images.map((_, idx) => (
+//                 <div
+//                   key={idx}
+//                   className="rounded-full transition-all duration-300"
+//                   style={{
+//                     width: currentImg === idx ? "12px" : "6px",
+//                     height: "6px",
+//                     backgroundColor:
+//                       currentImg === idx ? "white" : "rgba(255,255,255,0.5)",
+//                   }}
 //                 />
 //               ))}
 //             </div>
 //           )}
+
+//           {/* Hover icons */}
+//           <div className="absolute top-3 right-3 z-10 flex flex-col gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+//             <button
+//               onClick={(e) => { e.stopPropagation(); onQuickView?.(product); }}
+//               className="p-2 bg-white rounded-full shadow-md hover:bg-[#4CC9F0] hover:text-white text-gray-700 transition-colors"
+//             >
+//               <Maximize2 size={16} />
+//             </button>
+//             <button
+//               onClick={(e) => { e.stopPropagation(); setIsWished(!isWished); }}
+//               className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-all"
+//             >
+//               <Heart
+//                 size={16}
+//                 fill={isWished ? "#EF4444" : "none"}
+//                 className={isWished ? "text-red-500" : "text-gray-600"}
+//               />
+//             </button>
+//           </div>
 //         </div>
 
-//         {/* --- ইনফরমেশন সেকশন --- */}
-//         <div className="p-3">
-//           <h3 className="text-[13px] text-gray-800 font-medium line-clamp-1 mb-1">
+//         {/* Info Section */}
+//         <div className="p-4">
+//           <h3 className="text-[15px] text-gray-800 font-semibold line-clamp-1 mb-1 group-hover:text-[#4CC9F0] transition-colors">
 //             {product.name}
 //           </h3>
 
-//           <p className="text-[11px] font-bold text-green-600 mb-1.5">
-//             {inStock ? "In Stock" : "Out of Stock"}
-//           </p>
-
-//           <div className="flex gap-0.5 mb-2">
-//             {[...Array(5)].map((_, i) => (
-//               <Star 
-//                 key={i} 
-//                 size={12} 
-//                 fill={i < rating ? "#FFA000" : "none"} 
-//                 className={i < rating ? "text-[#FFA000]" : "text-gray-200"} 
-//               />
-//             ))}
+//           <div className="flex items-center justify-between mb-2">
+//             <p className={`text-[11px] font-bold uppercase tracking-wider ${inStock ? "text-green-500" : "text-red-400"}`}>
+//               {inStock ? "● In Stock" : "○ Out of Stock"}
+//             </p>
+//             <div className="flex gap-0.5">
+//               {[...Array(5)].map((_, i) => (
+//                 <Star
+//                   key={i}
+//                   size={12}
+//                   fill={i < rating ? "#F97316" : "none"}
+//                   className={i < rating ? "text-[#F97316]" : "text-gray-200"}
+//                 />
+//               ))}
+//             </div>
 //           </div>
 
-//           <div className="flex items-center gap-2">
-//             <span className="text-[12px] text-gray-400 line-through">Rs {oldPrice}</span>
-//             <span className="text-[16px] font-bold text-[#E01313]">Rs {realPrice}</span>
+//           <div className="flex items-baseline gap-2">
+//             <span className="text-[18px] font-bold text-[#D90429]">
+//               Rs {realPrice.toLocaleString()}
+//             </span>
+//             <span className="text-[13px] text-gray-400 line-through">
+//               Rs {Number(oldPrice).toLocaleString()}
+//             </span>
 //           </div>
 //         </div>
 //       </div>

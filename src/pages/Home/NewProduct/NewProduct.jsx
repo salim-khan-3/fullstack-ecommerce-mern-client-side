@@ -1,31 +1,46 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
 import ProductCard from "../FeaturedProduct/ProductCard";
 import ProductQuickView from "../ProductQuickView/ProductQuickView";
 import { getNewProducts } from "../../../utils/api/productApi";
 
+const AUTO_SCROLL_INTERVAL = 3000;
+
 const NewProduct = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts]               = useState([]);
+  const [loading, setLoading]                 = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isHovered, setIsHovered]             = useState(false);
+  const timerRef                              = useRef(null);
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    breakpoints: { "(min-width: 1024px)": { active: false } },
     align: "start",
-    dragFree: true,
+    dragFree: false,
+    loop: true,
   });
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
 
+  // Fetch latest products
   useEffect(() => {
-    getNewProducts(10)
-      .then((data) => setProducts(data))
+    getNewProducts(12)
+      .then(setProducts)
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
+  // Auto scroll — pauses on hover
+  useEffect(() => {
+    if (!emblaApi || loading) return;
+    timerRef.current = setInterval(() => {
+      if (!isHovered) emblaApi.scrollNext();
+    }, AUTO_SCROLL_INTERVAL);
+    return () => clearInterval(timerRef.current);
+  }, [emblaApi, loading, isHovered]);
+
+  // ── Loading skeleton ──
   if (loading) return (
     <div className="mb-12">
       <div className="flex items-center justify-between mb-8">
@@ -38,9 +53,9 @@ const NewProduct = () => {
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {[...Array(8)].map((_, i) => (
-          <div key={i} className="rounded-xl overflow-hidden border border-gray-100">
+      <div className="flex gap-4 overflow-hidden">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="w-[240px] shrink-0 rounded-xl overflow-hidden border border-gray-100">
             <div className="h-44 bg-gray-100 animate-pulse" />
             <div className="p-3 space-y-2">
               <div className="h-3 bg-gray-100 rounded animate-pulse" />
@@ -105,13 +120,18 @@ const NewProduct = () => {
           </div>
         </div>
 
-        {/* Slider & Grid */}
-        <div className="overflow-hidden lg:overflow-visible" ref={emblaRef}>
-          <div className="flex lg:grid lg:grid-cols-4">
+        {/* Single row — auto scroll carousel */}
+        <div
+          className="overflow-hidden"
+          ref={emblaRef}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <div className="flex gap-4">
             {products.map((product) => (
               <div
                 key={product._id}
-                className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] md:flex-[0_0_33.33%] lg:flex-none lg:w-full px-2 lg:px-0"
+                className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] md:flex-[0_0_33.33%] lg:flex-[0_0_calc(25%-12px)] shrink-0"
               >
                 <ProductCard
                   product={product}
@@ -123,7 +143,6 @@ const NewProduct = () => {
         </div>
       </div>
 
-      {/* Quick View Modal */}
       {selectedProduct && (
         <ProductQuickView
           product={selectedProduct}

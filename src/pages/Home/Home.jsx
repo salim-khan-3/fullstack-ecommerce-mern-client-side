@@ -10,6 +10,7 @@ import NewsletterSection from "./NewsletterSection/NewsletterSection";
 import Newsletter from "./NewsletterSection/NewsletterSection";
 import FeaturedProduct from "./FeaturedProduct/FeaturedProduct";
 import PromoBannerStack from "./PromoBannerStack/PromoBannerStack ";
+import PopularProduct from "./PopularProduct/PopularProduct";
 
 const Home = () => {
   return (
@@ -30,12 +31,17 @@ const Home = () => {
             {/* Right Side Content (Mobile-e upore thakbe, Desktop-e dane) */}
             <div className="w-full lg:col-span-3">
               <div className="flex flex-col gap-10">
-                <FeaturedProduct />
-                <PromoSection></PromoSection>
+                <PopularProduct></PopularProduct>
                 <NewProduct />
+                <PromoSection></PromoSection>
               </div>
             </div>
           </div>
+                <FeaturedProduct />
+
+
+
+
         </div>
       </section>
 

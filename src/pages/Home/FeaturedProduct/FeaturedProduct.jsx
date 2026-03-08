@@ -53,7 +53,7 @@ const FeaturedProduct = () => {
                 // mobile: 100% (1টা), sm: 50% (2টা), md: 33.33% (3টা), lg: 25% (4টা)
                 <div
                   key={product._id}
-                  className="flex-[0_0_100%] sm:flex-[0_0_50%] md:flex-[0_0_33.33%] lg:flex-[0_0_25%] min-w-0"
+                  className="flex-[0_0_100%] sm:flex-[0_0_50%] md:flex-[0_0_33.33%] lg:flex-[0_0_20%] min-w-0"
                 >
                   <ProductCard
                     product={product}
