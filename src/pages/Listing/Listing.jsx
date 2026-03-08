@@ -37,7 +37,7 @@ const Listing = () => {
         setProducts(prods);
         const cat = cats.find(c => c._id === categoryId);
         setCategory(cat || null);
-        const catSubs = subs.filter(s => (s.category?._id || s.category) === categoryId);
+        const catSubs = subs.filter(s => (s.category?._id || s.category)?.toString() === categoryId?.toString());
         setSubCategories(catSubs);
       })
       .catch(console.error)
@@ -55,7 +55,7 @@ const Listing = () => {
       setFiltered(products);
     } else {
       setFiltered(
-        products.filter(p => (p.subCat?._id || p.subCat) === selectedSubCat)
+        products.filter(p => (p.subCat?._id || p.subCat)?.toString() === selectedSubCat?.toString())
       );
     }
   }, [products, selectedSubCat]);
@@ -118,6 +118,139 @@ const Listing = () => {
 };
 
 export default Listing;
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useEffect } from "react";
+// import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+// import Sidebar from "./Sidebar/Sidebar";
+// import ProductControls from "./ProductControls/ProductControls";
+// import HeroBanner from "./HeroBanner/HeroBanner";
+// import SingleProductCard from "../../Components/cards/SingleProductCard/SingleProductCard";
+// import { getProductsByCategory } from "../../utils/api/productApi";
+// import { getAllCategoriesForUI } from "../../utils/api/categoryApi";
+// import { getAllSubCategories } from "../../utils/api/subCategoryApi";
+// import ProductCard from "../Home/FeaturedProduct/ProductCard";
+
+// const Listing = () => {
+//   const { id: categoryId }       = useParams();
+//   const [searchParams]           = useSearchParams();
+//   const navigate                 = useNavigate();
+//   const subCatParam              = searchParams.get("subCat");
+
+//   const [columns, setColumns]           = useState(4);
+//   const [products, setProducts]         = useState([]);
+//   const [filtered, setFiltered]         = useState([]);
+//   const [loading, setLoading]           = useState(true);
+//   const [category, setCategory]         = useState(null);
+//   const [subCategories, setSubCategories] = useState([]);
+//   const [selectedSubCat, setSelectedSubCat] = useState(subCatParam || "");
+
+//   // Fetch products + category + subcategories
+//   useEffect(() => {
+//     if (!categoryId) return;
+//     setLoading(true);
+
+//     Promise.all([
+//       getProductsByCategory(categoryId),
+//       getAllCategoriesForUI(),
+//       getAllSubCategories(),
+//     ])
+//       .then(([prods, cats, subs]) => {
+//         setProducts(prods);
+//         const cat = cats.find(c => c._id === categoryId);
+//         setCategory(cat || null);
+//         const catSubs = subs.filter(s => (s.category?._id || s.category) === categoryId);
+//         setSubCategories(catSubs);
+//       })
+//       .catch(console.error)
+//       .finally(() => setLoading(false));
+//   }, [categoryId]);
+
+//   // Sync subCat from URL param
+//   useEffect(() => {
+//     setSelectedSubCat(subCatParam || "");
+//   }, [subCatParam]);
+
+//   // Filter by subcategory
+//   useEffect(() => {
+//     if (!selectedSubCat) {
+//       setFiltered(products);
+//     } else {
+//       setFiltered(
+//         products.filter(p => (p.subCat?._id || p.subCat) === selectedSubCat)
+//       );
+//     }
+//   }, [products, selectedSubCat]);
+
+//   return (
+//     <section>
+//       <div className="container mx-auto">
+//         <div className="px-4 py-10 grid grid-cols-4">
+//           <div className="col-span-1">
+//             <Sidebar
+//               subCategories={subCategories}
+//               selectedSubCat={selectedSubCat}
+//               onSubCatChange={setSelectedSubCat}
+//             />
+//           </div>
+//           <div className="col-span-3">
+//             <HeroBanner category={category} />
+//             <ProductControls columns={columns} onChangeColumns={setColumns} />
+
+//             {loading ? (
+//               <div className="grid grid-cols-4 gap-6">
+//                 {[...Array(4)].map((_, i) => (
+//                   <div key={i} className="rounded-xl overflow-hidden border border-gray-100">
+//                     <div className="h-48 bg-gray-100 animate-pulse" />
+//                     <div className="p-3 space-y-2">
+//                       <div className="h-3 bg-gray-100 rounded animate-pulse" />
+//                       <div className="h-3 w-2/3 bg-gray-100 rounded animate-pulse" />
+//                     </div>
+//                   </div>
+//                 ))}
+//               </div>
+//             ) : (
+//               <div
+//                 className={`grid gap-6 ${
+//                   columns === 1
+//                     ? "grid-cols-1"
+//                     : columns === 2
+//                     ? "grid-cols-2"
+//                     : columns === 3
+//                     ? "grid-cols-3"
+//                     : "grid-cols-4"
+//                 }`}
+//               >
+//                 {filtered.map((product) => (
+//                   <div key={product._id} className="px-2 lg:px-0">
+//                     {columns === 1 ? (
+//                       <SingleProductCard product={product} />
+//                     ) : (
+//                       <ProductCard product={product} />
+//                     )}
+//                   </div>
+//                 ))}
+//               </div>
+//             )}
+//           </div>
+//         </div>
+//       </div>
+//     </section>
+//   );
+// };
+
+// export default Listing;
 
 
 

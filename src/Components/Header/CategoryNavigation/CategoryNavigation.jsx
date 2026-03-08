@@ -6,175 +6,1057 @@ import { getAllCategoriesForUI } from "../../../utils/api/categoryApi";
 import { getAllSubCategories } from "../../../utils/api/subCategoryApi";
 
 const CategoryNavigation = () => {
-  const [categories, setCategories]         = useState([]);
-  const [subCategories, setSubCategories]   = useState([]);
-  const [isCatOpen, setIsCatOpen]           = useState(false);
-  const [openNav, setOpenNav]               = useState(null);
+
+  const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
+  const [isCatOpen, setIsCatOpen] = useState(false);
+  const [openNav, setOpenNav] = useState(null);
 
   const dropdownRef = useRef(null);
-  const navigate    = useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    getAllCategoriesForUI()
-      .then((data) => setCategories(Array.isArray(data) ? data : []))
-      .catch(console.error);
 
-    getAllSubCategories()
-      .then(setSubCategories)
-      .catch(console.error);
-  }, []);
+    const fetchData = async () => {
+      try {
 
-  // Close ALL CATEGORIES on outside click
-  useEffect(() => {
-    const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target))
-        setIsCatOpen(false);
+        const catData = await getAllCategoriesForUI();
+        setCategories(Array.isArray(catData) ? catData : []);
+
+        const subData = await getAllSubCategories();
+        setSubCategories(Array.isArray(subData) ? subData : []);
+
+      } catch (error) {
+        console.error(error);
+      }
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+
+    fetchData();
+
   }, []);
 
-  const getSubCats = (categoryId) =>
-    subCategories.filter((s) => (s.category?._id || s.category) === categoryId);
+  useEffect(() => {
+
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsCatOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handler);
+
+    return () => {
+      document.removeEventListener("mousedown", handler);
+    };
+
+  }, []);
+
+  // category অনুযায়ী subcategory বের করা
+  const getSubCats = (cat) => {
+
+    return subCategories.filter((s) => {
+
+      const catId = s.category?._id || s.category;
+
+      return catId?.toString() === cat._id?.toString();
+
+    });
+
+  };
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
-        .cn-root { font-family: 'Outfit', sans-serif; }
-        .cn-scroll::-webkit-scrollbar { display: none; }
-        .cn-scroll { scrollbar-width: none; }
+    <div className="w-full bg-white border-b shadow-sm sticky top-0 z-[100]">
 
-        .cn-drop {
-          animation: cnDrop 0.15s ease;
-        }
-        @keyframes cnDrop {
-          from { opacity: 0; transform: translateY(-6px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
+      <div className="container mx-auto px-4 flex items-center">
 
-        .cn-allcat-drop {
-          animation: cnDrop 0.15s ease;
-        }
-      `}</style>
+        {/* ALL CATEGORY BUTTON */}
 
-      <div className="cn-root w-full bg-white border-b border-gray-100 shadow-sm">
-        <div className="container mx-auto px-4 flex items-center gap-2">
+        <div
+          className="relative py-3 pr-6 border-r"
+          ref={dropdownRef}
+        >
 
-          {/* ── ALL CATEGORIES ── */}
-          <div className="relative shrink-0" ref={dropdownRef}>
-            <button
-              onClick={() => setIsCatOpen(!isCatOpen)}
-              className="flex items-center gap-2 px-4 py-3 rounded-lg text-white text-[13px] font-bold"
-              style={{ background: "linear-gradient(135deg,#2bbef9,#3b82f6)" }}
-            >
-              <Grid3X3 size={15} />
-              ALL CATEGORIES
-              <ChevronDown
-                size={12}
-                className={`transition-transform duration-200 ${isCatOpen ? "rotate-180" : ""}`}
-              />
-            </button>
+          <button
+            onClick={() => setIsCatOpen(!isCatOpen)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full text-white text-sm font-bold bg-blue-500"
+          >
+            <Grid3X3 size={16} />
+            ALL CATEGORIES
+            <ChevronDown size={14} />
+          </button>
 
-            {/* ALL CATEGORIES dropdown — simple list */}
-            {isCatOpen && (
-              <div
-                className="cn-allcat-drop absolute top-[calc(100%+4px)] left-0 z-[200] bg-white rounded-xl py-1.5 min-w-[180px]"
-                style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)" }}
-              >
-                {categories.map((cat) => (
-                  <button
-                    key={cat._id}
-                    onClick={() => {
-                      setIsCatOpen(false);
-                      navigate(`/category/${cat._id}`);
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium transition-colors"
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {isCatOpen && (
+            <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-lg border min-w-[220px]">
 
-          {/* ── NAV LINKS ── */}
-          <nav className="flex-1 cn-scroll overflow-x-auto">
-            <ul className="flex items-center">
-              {categories.map((cat) => {
-                const isOpen  = openNav === cat._id;
-                const subCats = getSubCats(cat._id);
+              {categories.map((cat) => (
 
-                return (
-                  <li
-                    key={cat._id}
-                    className="relative shrink-0"
-                    onMouseEnter={() => setOpenNav(cat._id)}
-                    onMouseLeave={() => setOpenNav(null)}
-                  >
-                    {/* Category link */}
-                    <Link
-                      to={`/category/${cat._id}`}
-                      className={`flex items-center gap-1.5 px-3 py-4 text-[13px] font-semibold whitespace-nowrap transition-colors duration-150 ${
-                        isOpen ? "text-[#2bbef9]" : "text-gray-600 hover:text-gray-900"
-                      }`}
-                    >
-                      {/* Category icon initial */}
-                      <span
-                        className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black text-white shrink-0"
-                        style={{ background: isOpen ? "#2bbef9" : "#94a3b8" }}
-                      >
-                        {cat.name?.charAt(0).toUpperCase()}
-                      </span>
-                      {cat.name}
-                      <ChevronDown
-                        size={11}
-                        strokeWidth={2.5}
-                        className={`transition-transform duration-200 ${isOpen ? "rotate-180 text-[#2bbef9]" : "text-gray-300"}`}
-                      />
-                    </Link>
+                <button
+                  key={cat._id}
+                  onClick={() => {
+                    setIsCatOpen(false);
+                    navigate(`/category/${cat._id}`);
+                  }}
+                  className="block w-full text-left px-5 py-3 text-sm hover:bg-gray-100"
+                >
+                  {cat.name}
+                </button>
 
-                    {/* Simple dropdown */}
-                    {isOpen && (
-                      <div
-                        className="cn-drop absolute top-full left-0 z-[100] bg-white rounded-xl py-1.5 min-w-[160px]"
-                        style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.06)" }}
-                      >
-                        {subCats.length > 0 ? (
-                          subCats.map((sub) => (
-                            <Link
-                              key={sub._id}
-                              to={`/category/${cat._id}?subCat=${sub._id}`}
-                              className="block px-4 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium transition-colors"
-                            >
-                              {sub.subCat}
-                            </Link>
-                          ))
-                        ) : (
-                          <Link
-                            to={`/category/${cat._id}`}
-                            className="block px-4 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium transition-colors"
-                          >
-                            View all {cat.name}
-                          </Link>
-                        )}
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
+              ))}
+
+            </div>
+          )}
 
         </div>
+
+        {/* NAV */}
+
+        <nav className="flex-1 ml-5">
+
+          <ul className="flex items-center gap-2">
+
+            {categories.map((cat) => {
+
+              const subCats = getSubCats(cat);
+              const isOpen = openNav === cat._id;
+
+              return (
+
+                <li
+                  key={cat._id}
+                  className="relative"
+                  onMouseEnter={() => setOpenNav(cat._id)}
+                  onMouseLeave={() => setOpenNav(null)}
+                >
+
+                  <Link
+                    to={`/category/${cat._id}`}
+                    className="flex items-center gap-2 px-4 py-5 text-sm font-semibold text-gray-600 hover:text-blue-600"
+                  >
+                    {cat.name}
+                    <ChevronDown size={12} />
+                  </Link>
+
+                 {isOpen && subCats.length > 0 && (
+  <div className="absolute top-full left-0 z-[200]">
+    <div className="cn-drop bg-white rounded-2xl py-4 min-w-[230px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100">
+
+      {subCats.map((sub) => (
+        <Link
+          key={sub._id}
+          to={`/category/${cat._id}?subCat=${sub._id}`}
+          className="flex items-center gap-3 px-5 py-2.5 text-[13px] text-gray-600 hover:bg-blue-50 hover:text-blue-600 font-medium transition-all duration-200"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+          {sub.subCat}
+        </Link>
+      ))}
+
+    </div>
+  </div>
+)}
+
+                </li>
+
+              );
+
+            })}
+
+          </ul>
+
+        </nav>
+
       </div>
-    </>
+
+    </div>
   );
 };
 
 export default CategoryNavigation;
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useEffect, useRef, useState } from "react";
+// import { ChevronDown, Grid3X3 } from "lucide-react";
+// import { Link, useNavigate } from "react-router-dom";
+// import { getAllCategoriesForUI } from "../../../utils/api/categoryApi";
+// import { getAllSubCategories } from "../../../utils/api/subCategoryApi";
+
+// const CategoryNavigation = () => {
+//   const [categories, setCategories]       = useState([]);
+//   const [subCategories, setSubCategories] = useState([]);
+//   const [isCatOpen, setIsCatOpen]         = useState(false);
+//   const [openNav, setOpenNav]             = useState(null);
+
+//   const dropdownRef = useRef(null);
+//   const navigate    = useNavigate();
+
+//   useEffect(() => {
+//     getAllCategoriesForUI()
+//       .then((data) => setCategories(Array.isArray(data) ? data : []))
+//       .catch(console.error);
+
+//     getAllSubCategories()
+//       .then(setSubCategories)
+//       .catch(console.error);
+//   }, []);
+
+//   useEffect(() => {
+//     const handler = (e) => {
+//       if (dropdownRef.current && !dropdownRef.current.contains(e.target))
+//         setIsCatOpen(false);
+//     };
+//     document.addEventListener("mousedown", handler);
+//     return () => document.removeEventListener("mousedown", handler);
+//   }, []);
+
+//   // populate করা হয় তাই s.category একটা object { _id, name }
+//   const getSubCats = (cat) =>
+//     subCategories.filter((s) =>
+//       s.category?._id?.toString() === cat._id?.toString()
+//     );
+// console.log(subCategories);
+
+//   return (
+//     <>
+//       <style>{`
+//         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+//         .cn-root { font-family: 'Outfit', sans-serif; }
+//         .cn-scroll::-webkit-scrollbar { display: none; }
+//         .cn-scroll { scrollbar-width: none; }
+
+//         .cn-drop {
+//           animation: cnFadeIn 0.2s ease-out;
+//         }
+//         @keyframes cnFadeIn {
+//           from { opacity: 0; transform: translateY(10px); }
+//           to { opacity: 1; transform: translateY(0); }
+//         }
+//       `}</style>
+
+//       <div className="cn-root w-full bg-white border-b border-gray-100 shadow-sm sticky top-0 z-[100]">
+//         <div className="container mx-auto px-4 flex items-center">
+
+//           {/* ── ALL CATEGORIES ── */}
+//           <div className="relative shrink-0 py-3 pr-6 border-r border-gray-100" ref={dropdownRef}>
+//             <button
+//               onClick={() => setIsCatOpen(!isCatOpen)}
+//               className="flex items-center gap-2 px-5 py-2.5 rounded-full text-white text-[13px] font-bold transition-all hover:shadow-lg active:scale-95"
+//               style={{ background: "linear-gradient(135deg,#2bbef9,#3b82f6)" }}
+//             >
+//               <Grid3X3 size={16} />
+//               ALL CATEGORIES
+//               <ChevronDown size={14} className={`transition-transform duration-300 ${isCatOpen ? "rotate-180" : ""}`} />
+//             </button>
+
+//             {isCatOpen && (
+//               <div className="cn-drop absolute top-[calc(100%+10px)] left-0 z-[200] bg-white rounded-2xl py-3 min-w-[220px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-50">
+//                 {categories.map((cat) => (
+//                   <button
+//                     key={cat._id}
+//                     onClick={() => {
+//                       setIsCatOpen(false);
+//                       navigate(`/category/${cat._id}`);
+//                     }}
+//                     className="w-full text-left px-5 py-2.5 text-[14px] text-gray-600 hover:bg-blue-50 hover:text-blue-600 font-medium transition-all"
+//                   >
+//                     {cat.name}
+//                   </button>
+//                 ))}
+//               </div>
+//             )}
+//           </div>
+
+//           {/* ── NAV LINKS ── */}
+//           <nav className="flex-1 cn-scroll overflow-x-auto ml-4">
+//             <ul className="flex items-center gap-1">
+//               {categories.map((cat) => {
+//                 const isOpen  = openNav === cat._id;
+//                 const subCats = getSubCats(cat);
+
+//                 return (
+//                   <li
+//                     key={cat._id}
+//                     className="relative"
+//                     onMouseEnter={() => setOpenNav(cat._id)}
+//                     onMouseLeave={() => setOpenNav(null)}
+//                   >
+//                     <Link
+//                       to={`/category/${cat._id}`}
+//                       className={`flex items-center gap-2 px-4 py-6 text-[13.5px] font-semibold whitespace-nowrap transition-all duration-200 ${
+//                         isOpen ? "text-blue-600" : "text-gray-500 hover:text-gray-900"
+//                       }`}
+//                     >
+//                       <span
+//                         className="w-2 h-2 rounded-full transition-all"
+//                         style={{ backgroundColor: isOpen ? "#3b82f6" : "#e2e8f0" }}
+//                       />
+//                       {cat.name}
+//                       <ChevronDown size={12} className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+//                     </Link>
+
+//                     {isOpen && subCats.length > 0 && (
+//                       <div className="absolute top-full left-0 pt-2 z-[100]">
+//                         <div className="cn-drop bg-white rounded-xl py-3 min-w-[200px] shadow-[0_15px_35px_rgba(0,0,0,0.1)] border border-gray-100">
+//                           {subCats.map((sub) => (
+//                             <Link
+//                               key={sub._id}
+//                               to={`/category/${cat._id}?subCat=${sub._id}`}
+//                               className="block px-5 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-blue-600 font-medium transition-colors"
+//                             >
+//                               {sub.subCat}
+//                             </Link>
+//                           ))}
+//                         </div>
+//                       </div>
+//                     )}
+//                   </li>
+//                 );
+//               })}
+//             </ul>
+//           </nav>
+//         </div>
+//       </div>
+//     </>
+//   );
+// };
+
+// export default CategoryNavigation;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // // import React, { useEffect, useRef, useState } from "react";
+// // // import { ChevronDown, Grid3X3 } from "lucide-react";
+// // // import { Link, useNavigate } from "react-router-dom";
+// // // import { getAllCategoriesForUI } from "../../../utils/api/categoryApi";
+// // // import { getAllSubCategories } from "../../../utils/api/subCategoryApi";
+
+// // // const CategoryNavigation = () => {
+// // //   const [categories, setCategories]       = useState([]);
+// // //   const [subCategories, setSubCategories] = useState([]);
+// // //   const [isCatOpen, setIsCatOpen]         = useState(false);
+// // //   const [openNav, setOpenNav]             = useState(null);
+
+// // //   const dropdownRef = useRef(null);
+// // //   const navigate    = useNavigate();
+
+// // //   useEffect(() => {
+// // //     getAllCategoriesForUI()
+// // //       .then((data) => setCategories(Array.isArray(data) ? data : []))
+// // //       .catch(console.error);
+
+// // //     getAllSubCategories()
+// // //       .then(setSubCategories)
+// // //       .catch(console.error);
+// // //   }, []);
+
+// // //   useEffect(() => {
+// // //     const handler = (e) => {
+// // //       if (dropdownRef.current && !dropdownRef.current.contains(e.target))
+// // //         setIsCatOpen(false);
+// // //     };
+// // //     document.addEventListener("mousedown", handler);
+// // //     return () => document.removeEventListener("mousedown", handler);
+// // //   }, []);
+
+// // //   // category._id দিয়ে match, category null হলে category name দিয়ে match
+// // //   const getSubCats = (cat) =>
+// // //     subCategories.filter((s) => {
+// // //       // populated object এর _id দিয়ে match
+// // //       if (s.category?._id) {
+// // //         return s.category._id.toString() === cat._id.toString();
+// // //       }
+// // //       // plain string id দিয়ে match
+// // //       if (s.category) {
+// // //         return s.category.toString() === cat._id.toString();
+// // //       }
+// // //       return false;
+// // //     });
+
+// // //   return (
+// // //     <>
+// // //       <style>{`
+// // //         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+// // //         .cn-root { font-family: 'Outfit', sans-serif; }
+// // //         .cn-scroll::-webkit-scrollbar { display: none; }
+// // //         .cn-scroll { scrollbar-width: none; }
+
+// // //         .cn-drop {
+// // //           animation: cnFadeIn 0.2s ease-out;
+// // //         }
+// // //         @keyframes cnFadeIn {
+// // //           from { opacity: 0; transform: translateY(10px); }
+// // //           to { opacity: 1; transform: translateY(0); }
+// // //         }
+// // //       `}</style>
+
+// // //       <div className="cn-root w-full bg-white border-b border-gray-100 shadow-sm sticky top-0 z-[100]">
+// // //         <div className="container mx-auto px-4 flex items-center">
+
+// // //           {/* ── ALL CATEGORIES ── */}
+// // //           <div className="relative shrink-0 py-3 pr-6 border-r border-gray-100" ref={dropdownRef}>
+// // //             <button
+// // //               onClick={() => setIsCatOpen(!isCatOpen)}
+// // //               className="flex items-center gap-2 px-5 py-2.5 rounded-full text-white text-[13px] font-bold transition-all hover:shadow-lg active:scale-95"
+// // //               style={{ background: "linear-gradient(135deg,#2bbef9,#3b82f6)" }}
+// // //             >
+// // //               <Grid3X3 size={16} />
+// // //               ALL CATEGORIES
+// // //               <ChevronDown size={14} className={`transition-transform duration-300 ${isCatOpen ? "rotate-180" : ""}`} />
+// // //             </button>
+
+// // //             {isCatOpen && (
+// // //               <div className="cn-drop absolute top-[calc(100%+10px)] left-0 z-[200] bg-white rounded-2xl py-3 min-w-[220px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-50">
+// // //                 {categories.map((cat) => (
+// // //                   <button
+// // //                     key={cat._id}
+// // //                     onClick={() => {
+// // //                       setIsCatOpen(false);
+// // //                       navigate(`/category/${cat._id}`);
+// // //                     }}
+// // //                     className="w-full text-left px-5 py-2.5 text-[14px] text-gray-600 hover:bg-blue-50 hover:text-blue-600 font-medium transition-all"
+// // //                   >
+// // //                     {cat.name}
+// // //                   </button>
+// // //                 ))}
+// // //               </div>
+// // //             )}
+// // //           </div>
+
+// // //           {/* ── NAV LINKS ── */}
+// // //           <nav className="flex-1 cn-scroll overflow-x-auto ml-4">
+// // //             <ul className="flex items-center gap-1">
+// // //               {categories.map((cat) => {
+// // //                 const isOpen  = openNav === cat._id;
+// // //                 const subCats = getSubCats(cat);
+
+// // //                 return (
+// // //                   <li
+// // //                     key={cat._id}
+// // //                     className="relative"
+// // //                     onMouseEnter={() => setOpenNav(cat._id)}
+// // //                     onMouseLeave={() => setOpenNav(null)}
+// // //                   >
+// // //                     <Link
+// // //                       to={`/category/${cat._id}`}
+// // //                       className={`flex items-center gap-2 px-4 py-6 text-[13.5px] font-semibold whitespace-nowrap transition-all duration-200 ${
+// // //                         isOpen ? "text-blue-600" : "text-gray-500 hover:text-gray-900"
+// // //                       }`}
+// // //                     >
+// // //                       <span
+// // //                         className="w-2 h-2 rounded-full transition-all"
+// // //                         style={{ backgroundColor: isOpen ? "#3b82f6" : "#e2e8f0" }}
+// // //                       />
+// // //                       {cat.name}
+// // //                       <ChevronDown size={12} className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+// // //                     </Link>
+
+// // //                     {isOpen && subCats.length > 0 && (
+// // //                       <div className="absolute top-full left-0 pt-2 z-[100]">
+// // //                         <div className="cn-drop bg-white rounded-xl py-3 min-w-[200px] shadow-[0_15px_35px_rgba(0,0,0,0.1)] border border-gray-100">
+// // //                           {subCats.map((sub) => (
+// // //                             <Link
+// // //                               key={sub._id}
+// // //                               to={`/category/${cat._id}?subCat=${sub._id}`}
+// // //                               className="block px-5 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-blue-600 font-medium transition-colors"
+// // //                             >
+// // //                               {sub.subCat}
+// // //                             </Link>
+// // //                           ))}
+// // //                         </div>
+// // //                       </div>
+// // //                     )}
+// // //                   </li>
+// // //                 );
+// // //               })}
+// // //             </ul>
+// // //           </nav>
+// // //         </div>
+// // //       </div>
+// // //     </>
+// // //   );
+// // // };
+
+// // // export default CategoryNavigation;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // // import React, { useEffect, useRef, useState } from "react";
+// // // import { ChevronDown, Grid3X3 } from "lucide-react";
+// // // import { Link, useNavigate } from "react-router-dom";
+// // // import { getAllCategoriesForUI } from "../../../utils/api/categoryApi";
+// // // import { getAllSubCategories } from "../../../utils/api/subCategoryApi";
+
+// // // const CategoryNavigation = () => {
+// // //   const [categories, setCategories] = useState([]);
+// // //   const [subCategories, setSubCategories] = useState([]);
+// // //   const [isCatOpen, setIsCatOpen] = useState(false);
+// // //   const [openNav, setOpenNav] = useState(null);
+
+// // //   const dropdownRef = useRef(null);
+// // //   const navigate = useNavigate();
+
+// // //   useEffect(() => {
+// // //     getAllCategoriesForUI()
+// // //       .then((data) => setCategories(Array.isArray(data) ? data : []))
+// // //       .catch(console.error);
+
+// // //     getAllSubCategories()
+// // //       .then(setSubCategories)
+// // //       .catch(console.error);
+// // //   }, []);
+
+// // //   useEffect(() => {
+// // //     const handler = (e) => {
+// // //       if (dropdownRef.current && !dropdownRef.current.contains(e.target))
+// // //         setIsCatOpen(false);
+// // //     };
+// // //     document.addEventListener("mousedown", handler);
+// // //     return () => document.removeEventListener("mousedown", handler);
+// // //   }, []);
+
+// // //   const getSubCats = (categoryId) =>
+// // //     subCategories.filter((s) => {
+// // //       const id = s.category?._id || s.category;
+// // //       return id?.toString() === categoryId?.toString();
+// // //     });
+// // // console.log(subCategories);
+// // //   return (
+// // //     <>
+// // //       <style>{`
+// // //         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+// // //         .cn-root { font-family: 'Outfit', sans-serif; }
+// // //         .cn-scroll::-webkit-scrollbar { display: none; }
+// // //         .cn-scroll { scrollbar-width: none; }
+
+// // //         .cn-drop {
+// // //           animation: cnFadeIn 0.2s ease-out;
+// // //         }
+// // //         @keyframes cnFadeIn {
+// // //           from { opacity: 0; transform: translateY(10px); }
+// // //           to { opacity: 1; transform: translateY(0); }
+// // //         }
+// // //       `}</style>
+
+// // //       <div className="cn-root w-full bg-white border-b border-gray-100 shadow-sm sticky top-0 z-[100]">
+// // //         <div className="container mx-auto px-4 flex items-center">
+          
+// // //           {/* ── ALL CATEGORIES ── */}
+// // //           <div className="relative shrink-0 py-3 pr-6 border-r border-gray-100" ref={dropdownRef}>
+// // //             <button
+// // //               onClick={() => setIsCatOpen(!isCatOpen)}
+// // //               className="flex items-center gap-2 px-5 py-2.5 rounded-full text-white text-[13px] font-bold transition-all hover:shadow-lg active:scale-95"
+// // //               style={{ background: "linear-gradient(135deg,#2bbef9,#3b82f6)" }}
+// // //             >
+// // //               <Grid3X3 size={16} />
+// // //               ALL CATEGORIES
+// // //               <ChevronDown size={14} className={`transition-transform duration-300 ${isCatOpen ? "rotate-180" : ""}`} />
+// // //             </button>
+
+// // //             {isCatOpen && (
+// // //               <div className="cn-drop absolute top-[calc(100%+10px)] left-0 z-[200] bg-white rounded-2xl py-3 min-w-[220px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-50">
+// // //                 {categories.map((cat) => (
+// // //                   <button
+// // //                     key={cat._id}
+// // //                     onClick={() => {
+// // //                       setIsCatOpen(false);
+// // //                       navigate(`/category/${cat._id}`);
+// // //                     }}
+// // //                     className="w-full text-left px-5 py-2.5 text-[14px] text-gray-600 hover:bg-blue-50 hover:text-blue-600 font-medium transition-all"
+// // //                   >
+// // //                     {cat.name}
+// // //                   </button>
+// // //                 ))}
+// // //               </div>
+// // //             )}
+// // //           </div>
+
+// // //           {/* ── NAV LINKS ── */}
+// // //           <nav className="flex-1 cn-scroll overflow-x-auto ml-4">
+// // //             <ul className="flex items-center gap-1">
+// // //               {categories.map((cat) => {
+// // //                 const isOpen = openNav === cat._id;
+// // //                 const subCats = getSubCats(cat._id);
+
+// // //                 return (
+// // //                   <li
+// // //                     key={cat._id}
+// // //                     className="relative"
+// // //                     onMouseEnter={() => setOpenNav(cat._id)}
+// // //                     onMouseLeave={() => setOpenNav(null)}
+// // //                   >
+// // //                     <Link
+// // //                       to={`/category/${cat._id}`}
+// // //                       className={`flex items-center gap-2 px-4 py-6 text-[13.5px] font-semibold whitespace-nowrap transition-all duration-200 ${
+// // //                         isOpen ? "text-blue-600" : "text-gray-500 hover:text-gray-900"
+// // //                       }`}
+// // //                     >
+// // //                       <span
+// // //                         className="w-2 h-2 rounded-full transition-all"
+// // //                         style={{ backgroundColor: isOpen ? "#3b82f6" : "#e2e8f0" }}
+// // //                       />
+// // //                       {cat.name}
+// // //                       <ChevronDown size={12} className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+// // //                     </Link>
+
+// // //                     {/* Dropdown with invisible bridge to prevent closing */}
+// // //                     {isOpen && (
+// // //                       <div className="absolute top-full left-0 pt-2 z-[100]"> 
+// // //                         <div className="cn-drop bg-white rounded-xl py-3 min-w-[200px] shadow-[0_15px_35px_rgba(0,0,0,0.1)] border border-gray-100">
+// // //                           {subCats.length > 0 ? (
+// // //                             subCats.map((sub) => (
+// // //                               <Link
+// // //                                 key={sub._id}
+// // //                                 to={`/category/${cat._id}?subCat=${sub._id}`}
+// // //                                 className="block px-5 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-blue-600 font-medium transition-colors"
+// // //                               >
+// // //                                 {sub.subCat}
+// // //                               </Link>
+// // //                             ))
+// // //                           ) : (
+// // //                             <Link
+// // //                               to={`/category/${cat._id}`}
+// // //                               className="block px-5 py-2.5 text-[13px] text-gray-400 italic"
+// // //                             >
+// // //                               No subcategories
+// // //                             </Link>
+// // //                           )}
+// // //                         </div>
+// // //                       </div>
+// // //                     )}
+// // //                   </li>
+// // //                 );
+// // //               })}
+// // //             </ul>
+// // //           </nav>
+// // //         </div>
+// // //       </div>
+// // //     </>
+// // //   );
+// // // };
+
+// // // export default CategoryNavigation;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // // import React, { useEffect, useRef, useState } from "react";
+// // // import { ChevronDown, Grid3X3 } from "lucide-react";
+// // // import { Link, useNavigate } from "react-router-dom";
+// // // import { getAllCategoriesForUI } from "../../../utils/api/categoryApi";
+// // // import { getAllSubCategories } from "../../../utils/api/subCategoryApi";
+
+// // // const CategoryNavigation = () => {
+// // //   const [categories, setCategories]         = useState([]);
+// // //   const [subCategories, setSubCategories]   = useState([]);
+// // //   const [isCatOpen, setIsCatOpen]           = useState(false);
+// // //   const [openNav, setOpenNav]               = useState(null);
+
+// // //   const dropdownRef = useRef(null);
+// // //   const navigate    = useNavigate();
+
+// // //   useEffect(() => {
+// // //     getAllCategoriesForUI()
+// // //       .then((data) => setCategories(Array.isArray(data) ? data : []))
+// // //       .catch(console.error);
+
+// // //     getAllSubCategories()
+// // //       .then(setSubCategories)
+// // //       .catch(console.error);
+// // //   }, []);
+
+// // //   // Close ALL CATEGORIES on outside click
+// // //   useEffect(() => {
+// // //     const handler = (e) => {
+// // //       if (dropdownRef.current && !dropdownRef.current.contains(e.target))
+// // //         setIsCatOpen(false);
+// // //     };
+// // //     document.addEventListener("mousedown", handler);
+// // //     return () => document.removeEventListener("mousedown", handler);
+// // //   }, []);
+
+// // //   const getSubCats = (categoryId) =>
+// // //     subCategories.filter((s) => {
+// // //       const id = s.category?._id || s.category;
+// // //       return id?.toString() === categoryId?.toString();
+// // //     });
+
+// // //   return (
+// // //     <>
+// // //       <style>{`
+// // //         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+// // //         .cn-root { font-family: 'Outfit', sans-serif; }
+// // //         .cn-scroll::-webkit-scrollbar { display: none; }
+// // //         .cn-scroll { scrollbar-width: none; }
+
+// // //         .cn-drop {
+// // //           animation: cnDrop 0.15s ease;
+// // //         }
+// // //         @keyframes cnDrop {
+// // //           from { opacity: 0; transform: translateY(-6px); }
+// // //           to   { opacity: 1; transform: translateY(0); }
+// // //         }
+
+// // //         .cn-allcat-drop {
+// // //           animation: cnDrop 0.15s ease;
+// // //         }
+// // //       `}</style>
+
+// // //       <div className="cn-root w-full bg-white border-b border-gray-100 shadow-sm">
+// // //         <div className="container mx-auto px-4 flex items-center gap-2">
+
+// // //           {/* ── ALL CATEGORIES ── */}
+// // //           <div className="relative shrink-0" ref={dropdownRef}>
+// // //             <button
+// // //               onClick={() => setIsCatOpen(!isCatOpen)}
+// // //               className="flex items-center gap-2 px-4 py-3 rounded-lg text-white text-[13px] font-bold"
+// // //               style={{ background: "linear-gradient(135deg,#2bbef9,#3b82f6)" }}
+// // //             >
+// // //               <Grid3X3 size={15} />
+// // //               ALL CATEGORIES
+// // //               <ChevronDown
+// // //                 size={12}
+// // //                 className={`transition-transform duration-200 ${isCatOpen ? "rotate-180" : ""}`}
+// // //               />
+// // //             </button>
+
+// // //             {/* ALL CATEGORIES dropdown — simple list */}
+// // //             {isCatOpen && (
+// // //               <div
+// // //                 className="cn-allcat-drop absolute top-[calc(100%+4px)] left-0 z-[200] bg-white rounded-xl py-1.5 min-w-[180px]"
+// // //                 style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)" }}
+// // //               >
+// // //                 {categories.map((cat) => (
+// // //                   <button
+// // //                     key={cat._id}
+// // //                     onClick={() => {
+// // //                       setIsCatOpen(false);
+// // //                       navigate(`/category/${cat._id}`);
+// // //                     }}
+// // //                     className="w-full text-left px-4 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium transition-colors"
+// // //                   >
+// // //                     {cat.name}
+// // //                   </button>
+// // //                 ))}
+// // //               </div>
+// // //             )}
+// // //           </div>
+
+// // //           {/* ── NAV LINKS ── */}
+// // //           <nav className="flex-1 cn-scroll overflow-x-auto">
+// // //             <ul className="flex items-center">
+// // //               {categories.map((cat) => {
+// // //                 const isOpen  = openNav === cat._id;
+// // //                 const subCats = getSubCats(cat._id);
+
+// // //                 return (
+// // //                   <li
+// // //                     key={cat._id}
+// // //                     className="relative shrink-0"
+// // //                     onMouseEnter={() => setOpenNav(cat._id)}
+// // //                     onMouseLeave={() => setOpenNav(null)}
+// // //                   >
+// // //                     {/* Category link */}
+// // //                     <Link
+// // //                       to={`/category/${cat._id}`}
+// // //                       className={`flex items-center gap-1.5 px-3 py-4 text-[13px] font-semibold whitespace-nowrap transition-colors duration-150 ${
+// // //                         isOpen ? "text-[#2bbef9]" : "text-gray-600 hover:text-gray-900"
+// // //                       }`}
+// // //                     >
+// // //                       {/* Category icon initial */}
+// // //                       <span
+// // //                         className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black text-white shrink-0"
+// // //                         style={{ background: isOpen ? "#2bbef9" : "#94a3b8" }}
+// // //                       >
+// // //                         {cat.name?.charAt(0).toUpperCase()}
+// // //                       </span>
+// // //                       {cat.name}
+// // //                       <ChevronDown
+// // //                         size={11}
+// // //                         strokeWidth={2.5}
+// // //                         className={`transition-transform duration-200 ${isOpen ? "rotate-180 text-[#2bbef9]" : "text-gray-300"}`}
+// // //                       />
+// // //                     </Link>
+
+// // //                     {/* Simple dropdown */}
+// // //                     {isOpen && (
+// // //                       <div
+// // //                         className="cn-drop absolute top-full left-0 z-[100] bg-white rounded-xl py-1.5 min-w-[160px]"
+// // //                         style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.06)" }}
+// // //                       >
+// // //                         {subCats.length > 0 ? (
+// // //                           subCats.map((sub) => (
+// // //                             <Link
+// // //                               key={sub._id}
+// // //                               to={`/category/${cat._id}?subCat=${sub._id}`}
+// // //                               className="block px-4 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium transition-colors"
+// // //                             >
+// // //                               {sub.subCat}
+// // //                             </Link>
+// // //                           ))
+// // //                         ) : (
+// // //                           <Link
+// // //                             to={`/category/${cat._id}`}
+// // //                             className="block px-4 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium transition-colors"
+// // //                           >
+// // //                             View all {cat.name}
+// // //                           </Link>
+// // //                         )}
+// // //                       </div>
+// // //                     )}
+// // //                   </li>
+// // //                 );
+// // //               })}
+// // //             </ul>
+// // //           </nav>
+
+// // //         </div>
+// // //       </div>
+// // //     </>
+// // //   );
+// // // };
+
+// // // export default CategoryNavigation;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // // import React, { useEffect, useRef, useState } from "react";
+// // // import { ChevronDown, Grid3X3 } from "lucide-react";
+// // // import { Link, useNavigate } from "react-router-dom";
+// // // import { getAllCategoriesForUI } from "../../../utils/api/categoryApi";
+// // // import { getAllSubCategories } from "../../../utils/api/subCategoryApi";
+
+// // // const CategoryNavigation = () => {
+// // //   const [categories, setCategories]         = useState([]);
+// // //   const [subCategories, setSubCategories]   = useState([]);
+// // //   const [isCatOpen, setIsCatOpen]           = useState(false);
+// // //   const [openNav, setOpenNav]               = useState(null);
+
+// // //   const dropdownRef = useRef(null);
+// // //   const navigate    = useNavigate();
+
+// // //   useEffect(() => {
+// // //     getAllCategoriesForUI()
+// // //       .then((data) => setCategories(Array.isArray(data) ? data : []))
+// // //       .catch(console.error);
+
+// // //     getAllSubCategories()
+// // //       .then(setSubCategories)
+// // //       .catch(console.error);
+// // //   }, []);
+
+// // //   // Close ALL CATEGORIES on outside click
+// // //   useEffect(() => {
+// // //     const handler = (e) => {
+// // //       if (dropdownRef.current && !dropdownRef.current.contains(e.target))
+// // //         setIsCatOpen(false);
+// // //     };
+// // //     document.addEventListener("mousedown", handler);
+// // //     return () => document.removeEventListener("mousedown", handler);
+// // //   }, []);
+
+// // //   const getSubCats = (categoryId) =>
+// // //     subCategories.filter((s) => {
+// // //       const id = s.category?._id || s.category;
+// // //       return id?.toString() === categoryId?.toString();
+// // //     });
+// // // console.log(subCategories);
+// // //   return (
+// // //     <>
+// // //       <style>{`
+// // //         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+// // //         .cn-root { font-family: 'Outfit', sans-serif; }
+// // //         .cn-scroll::-webkit-scrollbar { display: none; }
+// // //         .cn-scroll { scrollbar-width: none; }
+
+// // //         .cn-drop {
+// // //           animation: cnDrop 0.15s ease;
+// // //         }
+// // //         @keyframes cnDrop {
+// // //           from { opacity: 0; transform: translateY(-6px); }
+// // //           to   { opacity: 1; transform: translateY(0); }
+// // //         }
+
+// // //         .cn-allcat-drop {
+// // //           animation: cnDrop 0.15s ease;
+// // //         }
+// // //       `}</style>
+
+// // //       <div className="cn-root w-full bg-white border-b border-gray-100 shadow-sm">
+// // //         <div className="container mx-auto px-4 flex items-center gap-2">
+
+// // //           {/* ── ALL CATEGORIES ── */}
+// // //           <div className="relative shrink-0" ref={dropdownRef}>
+// // //             <button
+// // //               onClick={() => setIsCatOpen(!isCatOpen)}
+// // //               className="flex items-center gap-2 px-4 py-3 rounded-lg text-white text-[13px] font-bold"
+// // //               style={{ background: "linear-gradient(135deg,#2bbef9,#3b82f6)" }}
+// // //             >
+// // //               <Grid3X3 size={15} />
+// // //               ALL CATEGORIES
+// // //               <ChevronDown
+// // //                 size={12}
+// // //                 className={`transition-transform duration-200 ${isCatOpen ? "rotate-180" : ""}`}
+// // //               />
+// // //             </button>
+
+// // //             {/* ALL CATEGORIES dropdown — simple list */}
+// // //             {isCatOpen && (
+// // //               <div
+// // //                 className="cn-allcat-drop absolute top-[calc(100%+4px)] left-0 z-[200] bg-white rounded-xl py-1.5 min-w-[180px]"
+// // //                 style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)" }}
+// // //               >
+// // //                 {categories.map((cat) => (
+// // //                   <button
+// // //                     key={cat._id}
+// // //                     onClick={() => {
+// // //                       setIsCatOpen(false);
+// // //                       navigate(`/category/${cat._id}`);
+// // //                     }}
+// // //                     className="w-full text-left px-4 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium transition-colors"
+// // //                   >
+// // //                     {cat.name}
+// // //                   </button>
+// // //                 ))}
+// // //               </div>
+// // //             )}
+// // //           </div>
+
+// // //           {/* ── NAV LINKS ── */}
+// // //           <nav className="flex-1 cn-scroll overflow-x-auto">
+// // //             <ul className="flex items-center">
+// // //               {categories.map((cat) => {
+// // //                 const isOpen  = openNav === cat._id;
+// // //                 const subCats = getSubCats(cat._id);
+
+// // //                 return (
+// // //                   <li
+// // //                     key={cat._id}
+// // //                     className="relative shrink-0"
+// // //                     onMouseEnter={() => setOpenNav(cat._id)}
+// // //                     onMouseLeave={() => setOpenNav(null)}
+// // //                   >
+// // //                     {/* Category link */}
+// // //                     <Link
+// // //                       to={`/category/${cat._id}`}
+// // //                       className={`flex items-center gap-1.5 px-3 py-4 text-[13px] font-semibold whitespace-nowrap transition-colors duration-150 ${
+// // //                         isOpen ? "text-[#2bbef9]" : "text-gray-600 hover:text-gray-900"
+// // //                       }`}
+// // //                     >
+// // //                       {/* Category icon initial */}
+// // //                       <span
+// // //                         className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black text-white shrink-0"
+// // //                         style={{ background: isOpen ? "#2bbef9" : "#94a3b8" }}
+// // //                       >
+// // //                         {cat.name?.charAt(0).toUpperCase()}
+// // //                       </span>
+// // //                       {cat.name}
+// // //                       <ChevronDown
+// // //                         size={11}
+// // //                         strokeWidth={2.5}
+// // //                         className={`transition-transform duration-200 ${isOpen ? "rotate-180 text-[#2bbef9]" : "text-gray-300"}`}
+// // //                       />
+// // //                     </Link>
+
+// // //                     {/* Simple dropdown */}
+// // //                     {isOpen && (
+// // //                       <div
+// // //                         className="cn-drop absolute top-full left-0 z-[100] bg-white rounded-xl py-1.5 min-w-[160px]"
+// // //                         style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.06)" }}
+// // //                       >
+// // //                         {subCats.length > 0 ? (
+// // //                           subCats.map((sub) => (
+// // //                             <Link
+// // //                               key={sub._id}
+// // //                               to={`/category/${cat._id}?subCat=${sub._id}`}
+// // //                               className="block px-4 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium transition-colors"
+// // //                             >
+// // //                               {sub.subCat}
+// // //                             </Link>
+// // //                           ))
+// // //                         ) : (
+// // //                           <Link
+// // //                             to={`/category/${cat._id}`}
+// // //                             className="block px-4 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium transition-colors"
+// // //                           >
+// // //                             View all {cat.name}
+// // //                           </Link>
+// // //                         )}
+// // //                       </div>
+// // //                     )}
+// // //                   </li>
+// // //                 );
+// // //               })}
+// // //             </ul>
+// // //           </nav>
+
+// // //         </div>
+// // //       </div>
+// // //     </>
+// // //   );
+// // // };
+
+// // // export default CategoryNavigation;
 
 
 
