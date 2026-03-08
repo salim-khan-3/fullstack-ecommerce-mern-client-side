@@ -1,5 +1,44 @@
+import { useState } from "react";
+import ProductImageZoom from "../ProductImageZoom/ProductImageZoom";
 
+const ProductImageGallery = ({ images = [] }) => {
+  const [activeImage, setActiveImage] = useState(images[0]);
 
+  return (
+    <div className="flex flex-col gap-3 w-full">
+
+      {/* Main Image */}
+      <div className="w-full rounded-2xl overflow-hidden bg-gray-50 border border-gray-100">
+        <ProductImageZoom Image={activeImage} />
+      </div>
+
+      {/* Thumbnails */}
+      {images.length > 1 && (
+        <div className="flex gap-2 flex-wrap">
+          {images.map((img, index) => (
+            <button
+              key={index}
+              onClick={() => setActiveImage(img)}
+              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition-all shrink-0
+                ${activeImage === img
+                  ? "border-blue-500"
+                  : "border-gray-200 hover:border-gray-300"
+                }`}
+            >
+              <img
+                src={img}
+                alt={`thumb-${index}`}
+                className="w-full h-full object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ProductImageGallery;
 
 
 

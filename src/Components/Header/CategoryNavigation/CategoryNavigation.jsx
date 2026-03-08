@@ -1,61 +1,30 @@
+
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronDown, ChevronRight, Grid3X3, Tag, Flame } from "lucide-react";
-import {
-  GiAppleCore, GiSteak, GiMilkCarton,
-  GiCoffeeCup, GiCupcake, GiSnowflake1,
-} from "react-icons/gi";
-import { Link } from "react-router-dom";
-
-const categories = [
-  {
-    name: "Fruits & Vegetables", icon: <GiAppleCore size={15} />, link: "/category/fruits",
-    color: "#22c55e", bg: "#f0fdf4",
-    children: ["Fresh Fruits", "Fresh Vegetables", "Herbs & Seasonings", "Exotic Fruits & Veggies", "Cuts & Sprouts", "Packaged Produce"],
-  },
-  {
-    name: "Meats & Seafood", icon: <GiSteak size={15} />, link: "/category/meats",
-    color: "#ef4444", bg: "#fef2f2",
-    children: ["Fresh Chicken", "Mutton", "Fish & Seafood", "Marinated Items", "Frozen Meat"],
-  },
-  {
-    name: "Breakfast & Dairy", icon: <GiMilkCarton size={15} />, link: "/category/dairy",
-    color: "#f59e0b", bg: "#fffbeb",
-    children: ["Milk & Cream", "Butter & Ghee", "Cheese", "Eggs", "Yogurt"],
-  },
-  {
-    name: "Beverages", icon: <GiCoffeeCup size={15} />, link: "/category/beverages",
-    color: "#8b5cf6", bg: "#f5f3ff",
-    children: ["Soft Drinks", "Juices", "Coffee & Tea", "Energy Drinks", "Health Drinks"],
-  },
-  {
-    name: "Breads & Bakery", icon: <GiCupcake size={15} />, link: "/category/bakery",
-    color: "#f97316", bg: "#fff7ed",
-    children: ["Bread & Buns", "Cakes", "Cookies & Biscuits", "Pastries"],
-  },
-  {
-    name: "Frozen Foods", icon: <GiSnowflake1 size={15} />, link: "/category/frozen",
-    color: "#0ea5e9", bg: "#f0f9ff",
-    children: ["Frozen Veggies", "Frozen Snacks", "Ice Cream", "Ready Meals"],
-  },
-];
-
-const navLinks = [
-  { label: "HOME",    href: "/",        items: ["Home Default", "Home Style 2", "Landing Page"] },
-  { label: "MEN",     href: "/men",     items: ["T-Shirts & Polos", "Jeans & Trousers", "Footwear"] },
-  { label: "WOMEN",   href: "/women",   items: ["Sarees & Kurtis", "Dresses & Tops", "Beauty"] },
-  { label: "BEAUTY",  href: "/beauty",  items: ["Skin Care", "Hair Care", "Makeup"] },
-  { label: "WATCHES", href: "/watches", items: ["Men's Watches", "Women's Watches", "Smartwatches"] },
-  { label: "KIDS",    href: "/kids",    items: ["Boys Wear", "Girls Wear", "Toys & Games"] },
-  { label: "BLOG",    href: "/blog",    items: ["Fashion Tips", "Lifestyle", "New Arrivals"] },
-  { label: "CONTACT", href: "/contact", items: ["Help Center", "About Us", "Policies"] },
-];
+import { ChevronDown, Grid3X3 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { getAllCategoriesForUI } from "../../../utils/api/categoryApi";
+import { getAllSubCategories } from "../../../utils/api/subCategoryApi";
 
 const CategoryNavigation = () => {
-  const [isCatOpen, setIsCatOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState(categories[0]);
-  const [openNav, setOpenNav] = useState(null);
-  const dropdownRef = useRef(null);
+  const [categories, setCategories]         = useState([]);
+  const [subCategories, setSubCategories]   = useState([]);
+  const [isCatOpen, setIsCatOpen]           = useState(false);
+  const [openNav, setOpenNav]               = useState(null);
 
+  const dropdownRef = useRef(null);
+  const navigate    = useNavigate();
+
+  useEffect(() => {
+    getAllCategoriesForUI()
+      .then((data) => setCategories(Array.isArray(data) ? data : []))
+      .catch(console.error);
+
+    getAllSubCategories()
+      .then(setSubCategories)
+      .catch(console.error);
+  }, []);
+
+  // Close ALL CATEGORIES on outside click
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target))
@@ -65,258 +34,130 @@ const CategoryNavigation = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const getSubCats = (categoryId) =>
+    subCategories.filter((s) => (s.category?._id || s.category) === categoryId);
+
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
         .cn-root { font-family: 'Outfit', sans-serif; }
-
-        .cn-link-line::after {
-          content: '';
-          position: absolute;
-          bottom: 0; left: 50%; right: 50%;
-          height: 2px;
-          background: linear-gradient(90deg, #2bbef9, #6366f1);
-          border-radius: 2px 2px 0 0;
-          transition: left 0.22s ease, right 0.22s ease;
-        }
-        .cn-link-line:hover::after,
-        .cn-link-line.active::after { left: 10px; right: 10px; }
-
-        .cn-panel-slide {
-          animation: cnPanelIn 0.18s cubic-bezier(0.16,1,0.3,1);
-        }
-        @keyframes cnPanelIn {
-          from { opacity:0; transform: translateY(-8px); }
-          to   { opacity:1; transform: translateY(0); }
-        }
-
-        .cn-drop-fade {
-          animation: cnDropIn 0.14s ease;
-        }
-        @keyframes cnDropIn {
-          from { opacity:0; transform: translateY(6px) translateX(-50%); }
-          to   { opacity:1; transform: translateY(0)  translateX(-50%); }
-        }
-
         .cn-scroll::-webkit-scrollbar { display: none; }
         .cn-scroll { scrollbar-width: none; }
 
-        .cn-cat-item { transition: background 0.15s; }
+        .cn-drop {
+          animation: cnDrop 0.15s ease;
+        }
+        @keyframes cnDrop {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .cn-allcat-drop {
+          animation: cnDrop 0.15s ease;
+        }
       `}</style>
 
-      <div
-        className="cn-root w-full bg-white"
-        style={{ borderBottom: "1px solid #efefef", boxShadow: "0 2px 14px rgba(0,0,0,0.04)" }}
-      >
-        <div className="container mx-auto px-5 flex items-center justify-between">
+      <div className="cn-root w-full bg-white border-b border-gray-100 shadow-sm">
+        <div className="container mx-auto px-4 flex items-center gap-2">
 
           {/* ── ALL CATEGORIES ── */}
-          <div className="relative hidden lg:flex shrink-0 items-center py-3 pr-4" ref={dropdownRef}>
+          <div className="relative shrink-0" ref={dropdownRef}>
             <button
               onClick={() => setIsCatOpen(!isCatOpen)}
-              className="flex items-center gap-2 pl-4 pr-5 py-2.5 rounded-xl text-white text-[13px] font-bold tracking-wide transition-all duration-200 active:scale-[0.97]"
-              style={{
-                background: "linear-gradient(135deg,#2bbef9 0%,#3b82f6 100%)",
-                boxShadow: isCatOpen
-                  ? "0 6px 20px rgba(43,190,249,0.45)"
-                  : "0 4px 14px rgba(43,190,249,0.28)",
-              }}
+              className="flex items-center gap-2 px-4 py-3 rounded-lg text-white text-[13px] font-bold"
+              style={{ background: "linear-gradient(135deg,#2bbef9,#3b82f6)" }}
             >
-              <Grid3X3 size={15} strokeWidth={2.5} />
+              <Grid3X3 size={15} />
               ALL CATEGORIES
               <ChevronDown
-                size={13}
-                strokeWidth={2.5}
-                className={`transition-transform duration-200 ml-0.5 ${isCatOpen ? "rotate-180" : ""}`}
+                size={12}
+                className={`transition-transform duration-200 ${isCatOpen ? "rotate-180" : ""}`}
               />
             </button>
 
-            {/* Mega dropdown */}
+            {/* ALL CATEGORIES dropdown — simple list */}
             {isCatOpen && (
               <div
-                className="cn-panel-slide absolute top-[calc(100%+4px)] left-0 z-[200] flex bg-white rounded-2xl overflow-hidden"
-                style={{
-                  boxShadow: "0 24px 64px rgba(0,0,0,0.13), 0 0 0 1px rgba(0,0,0,0.05)",
-                  minWidth: 500,
-                }}
+                className="cn-allcat-drop absolute top-[calc(100%+4px)] left-0 z-[200] bg-white rounded-xl py-1.5 min-w-[180px]"
+                style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)" }}
               >
-                {/* Left list */}
-                <ul className="w-[230px] py-2" style={{ borderRight: "1px solid #f4f4f6" }}>
-                  {categories.map((cat, i) => {
-                    const active = activeCategory.name === cat.name;
-                    return (
-                      <li
-                        key={i}
-                        onMouseEnter={() => setActiveCategory(cat)}
-                        className="cn-cat-item mx-2 my-0.5 rounded-xl flex items-center justify-between px-3 py-2.5 cursor-pointer"
-                        style={{ background: active ? cat.bg : "transparent" }}
-                      >
-                        <span className="flex items-center gap-3">
-                          <span
-                            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                            style={{
-                              background: active ? cat.color + "20" : "#f3f4f6",
-                              color: active ? cat.color : "#9ca3af",
-                            }}
-                          >
-                            {cat.icon}
-                          </span>
-                          <span
-                            className="text-[12.5px] font-semibold"
-                            style={{ color: active ? cat.color : "#4b5563" }}
-                          >
-                            {cat.name}
-                          </span>
-                        </span>
-                        <ChevronRight
-                          size={12}
-                          style={{ color: active ? cat.color : "#d1d5db" }}
-                        />
-                      </li>
-                    );
-                  })}
-                </ul>
-
-                {/* Right sub-items */}
-                <div className="flex-1 p-5 flex flex-col" style={{ minHeight: 290 }}>
-                  {/* Header */}
-                  <div
-                    className="flex items-center gap-3 mb-4 pb-3"
-                    style={{ borderBottom: `1.5px solid ${activeCategory.color}20` }}
+                {categories.map((cat) => (
+                  <button
+                    key={cat._id}
+                    onClick={() => {
+                      setIsCatOpen(false);
+                      navigate(`/category/${cat._id}`);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium transition-colors"
                   >
-                    <span
-                      className="w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0"
-                      style={{ background: activeCategory.bg, color: activeCategory.color }}
-                    >
-                      {activeCategory.icon}
-                    </span>
-                    <div>
-                      <p className="text-[9.5px] font-bold uppercase tracking-widest" style={{ color: activeCategory.color }}>
-                        Browse Category
-                      </p>
-                      <p className="text-[14px] font-black text-gray-900 leading-tight">
-                        {activeCategory.name}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Sub-items */}
-                  <ul className="flex-1 space-y-0.5">
-                    {activeCategory.children?.map((child, idx) => (
-                      <li key={idx}>
-                        <Link
-                          to={`${activeCategory.link}/${child.toLowerCase().replace(/\s+/g, "-")}`}
-                          onClick={() => setIsCatOpen(false)}
-                          className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-gray-500 transition-all duration-100 group/item hover:pl-4"
-                          style={{ "--c": activeCategory.color }}
-                          onMouseEnter={e => {
-                            e.currentTarget.style.background = activeCategory.bg;
-                            e.currentTarget.style.color = activeCategory.color;
-                          }}
-                          onMouseLeave={e => {
-                            e.currentTarget.style.background = "";
-                            e.currentTarget.style.color = "";
-                          }}
-                        >
-                          <span
-                            className="w-1.5 h-1.5 rounded-full shrink-0"
-                            style={{ background: activeCategory.color + "60" }}
-                          />
-                          {child}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* Promo chip */}
-                  <div
-                    className="mt-3 flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-bold"
-                    style={{ background: activeCategory.bg, color: activeCategory.color }}
-                  >
-                    <Flame size={12} />
-                    Up to 50% off · Limited time offer
-                  </div>
-                </div>
+                    {cat.name}
+                  </button>
+                ))}
               </div>
             )}
           </div>
 
-          {/* Vertical divider */}
-          {/* <div className="hidden lg:block w-px h-6 bg-gray-100 mr-3" /> */}
-
           {/* ── NAV LINKS ── */}
-          <nav className="flex-1 cn-scroll overflow-x-auto overflow-y-visible">
-            <ul className="flex items-center justify-end">
-              {navLinks.map((nav) => {
-                const isOpen = openNav === nav.label;
+          <nav className="flex-1 cn-scroll overflow-x-auto">
+            <ul className="flex items-center">
+              {categories.map((cat) => {
+                const isOpen  = openNav === cat._id;
+                const subCats = getSubCats(cat._id);
+
                 return (
                   <li
-                    key={nav.label}
+                    key={cat._id}
                     className="relative shrink-0"
-                    onMouseEnter={() => setOpenNav(nav.label)}
+                    onMouseEnter={() => setOpenNav(cat._id)}
                     onMouseLeave={() => setOpenNav(null)}
                   >
+                    {/* Category link */}
                     <Link
-                      to={nav.href}
-                      className={`cn-link-line flex items-center gap-1 px-3 py-[18px] text-[12px] font-bold uppercase tracking-[0.7px] whitespace-nowrap relative transition-colors duration-150 ${
-                        isOpen ? "text-[#2bbef9]" : "text-gray-500 hover:text-gray-900"
+                      to={`/category/${cat._id}`}
+                      className={`flex items-center gap-1.5 px-3 py-4 text-[13px] font-semibold whitespace-nowrap transition-colors duration-150 ${
+                        isOpen ? "text-[#2bbef9]" : "text-gray-600 hover:text-gray-900"
                       }`}
                     >
-                      {nav.label}
+                      {/* Category icon initial */}
+                      <span
+                        className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black text-white shrink-0"
+                        style={{ background: isOpen ? "#2bbef9" : "#94a3b8" }}
+                      >
+                        {cat.name?.charAt(0).toUpperCase()}
+                      </span>
+                      {cat.name}
                       <ChevronDown
-                        size={10}
+                        size={11}
                         strokeWidth={2.5}
                         className={`transition-transform duration-200 ${isOpen ? "rotate-180 text-[#2bbef9]" : "text-gray-300"}`}
                       />
                     </Link>
 
-                    {/* Dropdown */}
+                    {/* Simple dropdown */}
                     {isOpen && (
                       <div
-                        className="cn-drop-fade absolute top-full left-1/2 pt-1 z-[100]"
-                        style={{ transform: "translateX(-50%)" }}
+                        className="cn-drop absolute top-full left-0 z-[100] bg-white rounded-xl py-1.5 min-w-[160px]"
+                        style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.06)" }}
                       >
-                        <div
-                          className="bg-white rounded-2xl overflow-hidden"
-                          style={{
-                            boxShadow: "0 12px 40px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05)",
-                            minWidth: 195,
-                          }}
-                        >
-                          {/* Accent top bar */}
-                          <div
-                            className="h-[2.5px]"
-                            style={{ background: "linear-gradient(90deg,#2bbef9,#6366f1)" }}
-                          />
-
-                          <div className="py-1.5">
-                            {nav.items.map((sub, i) => (
-                              <Link
-                                key={i}
-                                to={`${nav.href}/${sub.toLowerCase().replace(/\s+/g, "-")}`}
-                                className="flex items-center gap-3 px-4 py-2.5 text-[12.5px] font-medium text-gray-500 hover:text-[#2bbef9] hover:bg-sky-50 transition-all duration-100 group/sub"
-                              >
-                                <span className="w-1.5 h-1.5 rounded-full bg-gray-200 group-hover/sub:bg-[#2bbef9] transition-colors shrink-0" />
-                                {sub}
-                              </Link>
-                            ))}
-                          </div>
-
-                          {/* View all */}
-                          <div
-                            className="px-4 py-2.5"
-                            style={{ borderTop: "1px solid #f4f4f6" }}
-                          >
+                        {subCats.length > 0 ? (
+                          subCats.map((sub) => (
                             <Link
-                              to={nav.href}
-                              className="flex items-center gap-1.5 text-[11px] font-bold text-[#2bbef9] hover:text-blue-700 transition-colors"
+                              key={sub._id}
+                              to={`/category/${cat._id}?subCat=${sub._id}`}
+                              className="block px-4 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium transition-colors"
                             >
-                              <Tag size={10} />
-                              View all {nav.label.charAt(0) + nav.label.slice(1).toLowerCase()}
+                              {sub.subCat}
                             </Link>
-                          </div>
-                        </div>
+                          ))
+                        ) : (
+                          <Link
+                            to={`/category/${cat._id}`}
+                            className="block px-4 py-2.5 text-[13px] text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium transition-colors"
+                          >
+                            View all {cat.name}
+                          </Link>
+                        )}
                       </div>
                     )}
                   </li>
@@ -324,6 +165,7 @@ const CategoryNavigation = () => {
               })}
             </ul>
           </nav>
+
         </div>
       </div>
     </>
@@ -331,3 +173,319 @@ const CategoryNavigation = () => {
 };
 
 export default CategoryNavigation;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useEffect, useRef, useState } from "react";
+// import { ChevronDown, ChevronRight, Grid3X3, Tag, Flame } from "lucide-react";
+// import { Link, useNavigate } from "react-router-dom";
+// import { getAllCategoriesForUI } from "../../../utils/api/categoryApi";
+// import { getAllSubCategories } from "../../../utils/api/subCategoryApi";
+
+// const CategoryNavigation = () => {
+//   const [categories, setCategories]         = useState([]);
+//   const [subCategories, setSubCategories]   = useState([]);
+//   const [isCatOpen, setIsCatOpen]           = useState(false);
+//   const [activeCategory, setActiveCategory] = useState(null);
+//   const [openNav, setOpenNav]               = useState(null);
+
+//   const dropdownRef = useRef(null);
+//   const navigate    = useNavigate();
+
+//   // Fetch categories + subcategories
+//   useEffect(() => {
+//     getAllCategoriesForUI()
+//       .then((data) => {
+//         const list = Array.isArray(data) ? data : [];
+//         setCategories(list);
+//         if (list.length > 0) setActiveCategory(list[0]);
+//       })
+//       .catch(console.error);
+
+//     getAllSubCategories()
+//       .then(setSubCategories)
+//       .catch(console.error);
+//   }, []);
+
+//   // Close on outside click
+//   useEffect(() => {
+//     const handler = (e) => {
+//       if (dropdownRef.current && !dropdownRef.current.contains(e.target))
+//         setIsCatOpen(false);
+//     };
+//     document.addEventListener("mousedown", handler);
+//     return () => document.removeEventListener("mousedown", handler);
+//   }, []);
+
+//   // Filter subcategories by category id
+//   const getSubCats = (categoryId) =>
+//     subCategories.filter((s) => {
+//       const id = s.category?._id || s.category;
+//       return id === categoryId;
+//     });
+
+//   return (
+//     <>
+//       <style>{`
+//         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+//         .cn-root { font-family: 'Outfit', sans-serif; }
+
+//         .cn-link-line::after {
+//           content: '';
+//           position: absolute;
+//           bottom: 0; left: 50%; right: 50%;
+//           height: 2px;
+//           background: linear-gradient(90deg, #2bbef9, #6366f1);
+//           border-radius: 2px 2px 0 0;
+//           transition: left 0.22s ease, right 0.22s ease;
+//         }
+//         .cn-link-line:hover::after { left: 10px; right: 10px; }
+
+//         .cn-panel-slide {
+//           animation: cnPanelIn 0.18s cubic-bezier(0.16,1,0.3,1);
+//         }
+//         @keyframes cnPanelIn {
+//           from { opacity:0; transform: translateY(-8px); }
+//           to   { opacity:1; transform: translateY(0); }
+//         }
+
+//         .cn-drop-fade {
+//           animation: cnDropIn 0.14s ease;
+//         }
+//         @keyframes cnDropIn {
+//           from { opacity:0; transform: translateY(6px) translateX(-50%); }
+//           to   { opacity:1; transform: translateY(0)  translateX(-50%); }
+//         }
+
+//         .cn-scroll::-webkit-scrollbar { display: none; }
+//         .cn-scroll { scrollbar-width: none; }
+//         .cn-cat-item { transition: background 0.15s; }
+//         .cn-sub-link { transition: background 0.12s, color 0.12s, padding-left 0.15s; }
+//         .cn-sub-link:hover { background: #f0f9ff; color: #2bbef9; padding-left: 16px; }
+//       `}</style>
+
+//       <div
+//         className="cn-root w-full bg-white"
+//         style={{ borderBottom: "1px solid #efefef", boxShadow: "0 2px 14px rgba(0,0,0,0.04)" }}
+//       >
+//         <div className="container mx-auto px-5 flex items-center justify-between">
+
+//           {/* ── ALL CATEGORIES button ── */}
+//           <div className="relative hidden lg:flex shrink-0 items-center py-3 pr-4" ref={dropdownRef}>
+//             <button
+//               onClick={() => setIsCatOpen(!isCatOpen)}
+//               className="flex items-center gap-2 pl-4 pr-5 py-2.5 rounded-xl text-white text-[13px] font-bold tracking-wide transition-all duration-200 active:scale-[0.97]"
+//               style={{
+//                 background: "linear-gradient(135deg,#2bbef9 0%,#3b82f6 100%)",
+//                 boxShadow: isCatOpen
+//                   ? "0 6px 20px rgba(43,190,249,0.45)"
+//                   : "0 4px 14px rgba(43,190,249,0.28)",
+//               }}
+//             >
+//               <Grid3X3 size={15} strokeWidth={2.5} />
+//               ALL CATEGORIES
+//               <ChevronDown
+//                 size={13}
+//                 strokeWidth={2.5}
+//                 className={`transition-transform duration-200 ml-0.5 ${isCatOpen ? "rotate-180" : ""}`}
+//               />
+//             </button>
+
+//             {/* ── Mega dropdown ── */}
+//             {isCatOpen && activeCategory && (
+//               <div
+//                 className="cn-panel-slide absolute top-[calc(100%+4px)] left-0 z-[200] flex bg-white rounded-2xl overflow-hidden"
+//                 style={{
+//                   boxShadow: "0 24px 64px rgba(0,0,0,0.13), 0 0 0 1px rgba(0,0,0,0.05)",
+//                   minWidth: 500,
+//                 }}
+//               >
+//                 {/* Left — category list */}
+//                 <ul className="w-[230px] py-2" style={{ borderRight: "1px solid #f4f4f6" }}>
+//                   {categories.map((cat) => {
+//                     const active = activeCategory._id === cat._id;
+//                     return (
+//                       <li
+//                         key={cat._id}
+//                         onMouseEnter={() => setActiveCategory(cat)}
+//                         onClick={() => {
+//                           setIsCatOpen(false);
+//                           navigate(`/category/${cat._id}`);
+//                         }}
+//                         className="cn-cat-item mx-2 my-0.5 rounded-xl flex items-center justify-between px-3 py-2.5 cursor-pointer"
+//                         style={{ background: active ? "#f0f9ff" : "transparent" }}
+//                       >
+//                         <span className="flex items-center gap-3">
+//                           <span
+//                             className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-[11px] font-black uppercase"
+//                             style={{
+//                               background: active ? "#2bbef920" : "#f3f4f6",
+//                               color: active ? "#2bbef9" : "#9ca3af",
+//                             }}
+//                           >
+//                             {cat.name?.charAt(0)}
+//                           </span>
+//                           <span
+//                             className="text-[12.5px] font-semibold"
+//                             style={{ color: active ? "#2bbef9" : "#4b5563" }}
+//                           >
+//                             {cat.name}
+//                           </span>
+//                         </span>
+//                         <ChevronRight size={12} style={{ color: active ? "#2bbef9" : "#d1d5db" }} />
+//                       </li>
+//                     );
+//                   })}
+//                 </ul>
+
+//                 {/* Right — subcategories */}
+//                 <div className="flex-1 p-5 flex flex-col" style={{ minHeight: 290 }}>
+//                   {/* Header */}
+//                   <div className="flex items-center gap-3 mb-4 pb-3" style={{ borderBottom: "1.5px solid #2bbef920" }}>
+//                     <span className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black bg-sky-50 text-sky-500 shrink-0">
+//                       {activeCategory.name?.charAt(0)}
+//                     </span>
+//                     <div>
+//                       <p className="text-[9.5px] font-bold uppercase tracking-widest text-sky-400">Browse Category</p>
+//                       <p className="text-[14px] font-black text-gray-900 leading-tight">{activeCategory.name}</p>
+//                     </div>
+//                   </div>
+
+//                   {/* Sub-items */}
+//                   <ul className="flex-1 space-y-0.5">
+//                     {getSubCats(activeCategory._id).length > 0 ? (
+//                       getSubCats(activeCategory._id).map((sub) => (
+//                         <li key={sub._id}>
+//                           <Link
+//                             to={`/category/${activeCategory._id}?subCat=${sub._id}`}
+//                             onClick={() => setIsCatOpen(false)}
+//                             className="cn-sub-link flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-gray-500"
+//                           >
+//                             <span className="w-1.5 h-1.5 rounded-full bg-sky-200 shrink-0" />
+//                             {sub.subCat}
+//                           </Link>
+//                         </li>
+//                       ))
+//                     ) : (
+//                       <li className="text-[12px] text-gray-300 px-2.5 py-2 italic">No subcategories</li>
+//                     )}
+//                   </ul>
+
+//                   {/* Promo chip */}
+//                   <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-bold bg-sky-50 text-sky-500">
+//                     <Flame size={12} />
+//                     Up to 50% off · Limited time offer
+//                   </div>
+//                 </div>
+//               </div>
+//             )}
+//           </div>
+
+//           {/* ── NAV LINKS (dynamic categories) ── */}
+//           <nav className="flex-1 cn-scroll overflow-x-auto overflow-y-visible">
+//             <ul className="flex items-center justify-end">
+//               {categories.map((cat) => {
+//                 const isOpen  = openNav === cat._id;
+//                 const subCats = getSubCats(cat._id);
+
+//                 return (
+//                   <li
+//                     key={cat._id}
+//                     className="relative shrink-0"
+//                     onMouseEnter={() => setOpenNav(cat._id)}
+//                     onMouseLeave={() => setOpenNav(null)}
+//                   >
+//                     <Link
+//                       to={`/category/${cat._id}`}
+//                       className={`cn-link-line flex items-center gap-1 px-3 py-[18px] text-[12px] font-bold uppercase tracking-[0.7px] whitespace-nowrap relative transition-colors duration-150 ${
+//                         isOpen ? "text-[#2bbef9]" : "text-gray-500 hover:text-gray-900"
+//                       }`}
+//                     >
+//                       {cat.name}
+//                       <ChevronDown
+//                         size={10}
+//                         strokeWidth={2.5}
+//                         className={`transition-transform duration-200 ${isOpen ? "rotate-180 text-[#2bbef9]" : "text-gray-300"}`}
+//                       />
+//                     </Link>
+
+//                     {/* Dropdown */}
+//                     {isOpen && (
+//                       <div
+//                         className="cn-drop-fade absolute top-full left-1/2 pt-1 z-[100]"
+//                         style={{ transform: "translateX(-50%)" }}
+//                       >
+//                         <div
+//                           className="bg-white rounded-2xl overflow-hidden"
+//                           style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05)", minWidth: 195 }}
+//                         >
+//                           <div className="h-[2.5px]" style={{ background: "linear-gradient(90deg,#2bbef9,#6366f1)" }} />
+
+//                           <div className="py-1.5">
+//                             {subCats.map((sub) => (
+//                               <Link
+//                                 key={sub._id}
+//                                 to={`/category/${cat._id}?subCat=${sub._id}`}
+//                                 className="flex items-center gap-3 px-4 py-2.5 text-[12.5px] font-medium text-gray-500 hover:text-[#2bbef9] hover:bg-sky-50 transition-all duration-100 group/sub"
+//                               >
+//                                 <span className="w-1.5 h-1.5 rounded-full bg-gray-200 group-hover/sub:bg-[#2bbef9] transition-colors shrink-0" />
+//                                 {sub.subCat}
+//                               </Link>
+//                             ))}
+//                           </div>
+
+//                           <div className="px-4 py-2.5" style={{ borderTop: "1px solid #f4f4f6" }}>
+//                             <Link
+//                               to={`/category/${cat._id}`}
+//                               className="flex items-center gap-1.5 text-[11px] font-bold text-[#2bbef9] hover:text-blue-700 transition-colors"
+//                             >
+//                               <Tag size={10} />
+//                               View all {cat.name}
+//                             </Link>
+//                           </div>
+//                         </div>
+//                       </div>
+//                     )}
+//                   </li>
+//                 );
+//               })}
+//             </ul>
+//           </nav>
+
+//         </div>
+//       </div>
+//     </>
+//   );
+// };
+
+// export default CategoryNavigation;

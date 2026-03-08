@@ -3,15 +3,15 @@ import "./App.css";
 import { useContext } from "react";
 // import { StoreProvider, MyContext } from "./context/StoreContext";
 
-import Home               from "./pages/Home/Home";
-import Navbar             from "./Components/layouts/Navbar/Navbar";
-import Footer             from "./Components/layouts/Footer/Footer";
-import Listing            from "./pages/Listing/Listing";
+import Home from "./pages/Home/Home";
+import Navbar from "./Components/layouts/Navbar/Navbar";
+import Footer from "./Components/layouts/Footer/Footer";
+import Listing from "./pages/Listing/Listing";
 import ProductDetailsPage from "./pages/ProductDetailsPage/ProductDetailsPage/ProductDetailsPage";
-import Cart               from "./pages/Cart/CartPage/Cart";
-import Login              from "./pages/Login/Login";
-import SignUp             from "./pages/SignUp/SignUp";
-import { StoreProvider,MyContext } from "./context/Storecontext";
+import Cart from "./pages/Cart/CartPage/Cart";
+import Login from "./pages/Login/Login";
+import SignUp from "./pages/SignUp/SignUp";
+import { StoreProvider, MyContext } from "./context/Storecontext";
 
 export { MyContext };
 
@@ -22,12 +22,12 @@ const AppLayout = () => {
     <>
       {isShowHeaderFooter && <Navbar />}
       <Routes>
-        <Route path="/"            element={<Home />} />
-        <Route path="/listing/:id" element={<Listing />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/category/:id" element={<Listing />} />
         <Route path="/product/:id" element={<ProductDetailsPage />} />
-        <Route path="/cart"        element={<Cart />} />
-        <Route path="/login"       element={<Login />} />
-        <Route path="/signup"      element={<SignUp />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
       </Routes>
       {isShowHeaderFooter && <Footer />}
     </>
@@ -46,11 +46,6 @@ function App() {
 
 export default App;
 
-
-
-
-
-
 // import { BrowserRouter, Route, Routes } from "react-router-dom";
 // import "./App.css";
 // import Home from "./pages/Home/Home";
@@ -63,7 +58,6 @@ export default App;
 // import Cart from "./pages/Cart/CartPage/Cart";
 // import Login from "./pages/Login/Login";
 // import SignUp from "./pages/SignUp/SignUp";
-
 
 // const MyContext = createContext();
 
@@ -103,7 +97,7 @@ export default App;
 //         {
 //           isShowHeaderFooter === true && <Navbar></Navbar>
 //         }
-        
+
 //         <Routes>
 //           <Route path="/" element={<Home />} />
 //           <Route path="/listing/:id" element={<Listing />} />

@@ -1,4 +1,4 @@
-
+import { Link } from "react-router-dom";
 import logo from "../../../assets/logo.png";
 
 const Logo = () => {
@@ -6,7 +6,7 @@ const Logo = () => {
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
-        .logo-root { font-family: 'DM Sans', sans-serif; }
+        .logo-root { font-family: 'DM Sans', sans-serif; text-decoration: none; }
         .logo-img-wrap {
           position: relative;
           width: 32px;
@@ -69,7 +69,7 @@ const Logo = () => {
         }
       `}</style>
 
-      <div className="logo-root flex items-center gap-2.5 cursor-pointer select-none">
+      <Link to="/" className="logo-root flex items-center gap-2.5 cursor-pointer select-none">
         {/* Icon */}
         <div className="logo-img-wrap">
           <img src={logo} alt="TrendCart" />
@@ -84,17 +84,12 @@ const Logo = () => {
           </div>
           <span className="logo-tag">Smart Shopping</span>
         </div>
-      </div>
+      </Link>
     </>
   );
 };
 
 export default Logo;
-
-
-
-
-
 
 
 

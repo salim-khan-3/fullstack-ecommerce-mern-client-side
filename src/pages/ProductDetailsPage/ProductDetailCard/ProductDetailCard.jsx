@@ -380,92 +380,192 @@
 
 
 
-
-
-
-
-import img1 from "../../../assets/4685339.jpg";
-import img2 from "../../../assets/8852975.jpg";
-import img3 from "../../../assets/4685339.jpg";
-import { Heart, Shuffle } from "lucide-react";
+import { useState } from "react";
+import { Heart, ArrowLeftRight, ShoppingCart, Star, Minus, Plus } from "lucide-react";
 import ProductImageGallery from "../../../Components/Shared/ProductImageGallery/ProductImageGallery";
-import QuantityCounter from "../../../Components/Shared/QuantityCounter/QuantityCounter";
 
-const ProductDetailCard = () => {
-    const productImages = [img1, img2, img3];
-    
-    return (
-        // Wrapper div jeta desktop e 2 column ar mobile e 1 column hobe
-        <div className="container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-             
-            {/* LEFT : Image */}
-            <div className="flex justify-center lg:justify-start">
-                <div className="w-full max-w-[500px] lg:max-w-full">
-                    <ProductImageGallery images={productImages} />
-                </div>
-            </div>
+const ProductDetailCard = ({ product }) => {
+  const [quantity, setQuantity]       = useState(1);
+  const [isWished, setIsWished]       = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
 
-            {/* RIGHT : Product Info */}
-            <div className="flex flex-col">
-              
-                <h1 className="text-2xl sm:text-3xl font-semibold mb-2">
-                    All Natural Italian-Style Chicken Meatballs
-                </h1>
+  if (!product) return null;
 
-                <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-500 mb-4">
-                    <span>Brand: Welch's</span>
-                    <span>•</span>
-                    <span>SKU: ZU49VOR</span>
-                </div>
+  const images    = product.images || [];
+  const realPrice = Number(product.price);
+  const oldPrice  = product.oldPrice && product.oldPrice > realPrice ? Number(product.oldPrice) : null;
+  const discount  = oldPrice ? Math.round(((oldPrice - realPrice) / oldPrice) * 100) : null;
+  const inStock   = product.countInStock > 0;
+  const rating    = Math.min(5, Math.max(0, Number(product.rating) || 0));
 
-                {/* Price */}
-                <div className="flex flex-wrap items-center gap-3 mb-4">
-                    <span className="line-through text-gray-400 text-sm sm:text-base">
-                        $9.35
-                    </span>
-                    <span className="text-xl sm:text-2xl font-bold text-red-600">
-                        $7.25
-                    </span>
-                    <span className="text-xs sm:text-sm text-green-600 font-medium">
-                        IN STOCK
-                    </span>
-                </div>
+  const handleAddToCart = () => {
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 2000);
+  };
 
-                {/* Description */}
-                <p className="text-gray-600 text-sm sm:text-base mb-6 leading-relaxed">
-                    Vivamus adipiscing nisl ut dolor dignissim semper.
-                    Nulla luctus malesuada tincidunt. Class aptent taciti
-                    sociosqu ad litora torquent.
-                </p>
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
 
-                {/* Quantity + Button */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-                    <QuantityCounter />
+      {/* LEFT — Image Gallery */}
+      <div className="relative">
+        {/* Discount badge */}
+        {discount && (
+          <div className="absolute top-3 left-3 z-10 bg-sky-400 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+            {discount}%
+          </div>
+        )}
+        <ProductImageGallery images={images} />
+      </div>
 
-                    <button className="w-full sm:w-auto bg-blue-600 text-white px-8 py-3 rounded-full hover:bg-blue-700 transition">
-                        Add to cart
-                    </button>
-                </div>
+      {/* RIGHT — Product Info */}
+      <div className="flex flex-col gap-3">
 
-                {/* Wishlist / Compare */}
-                <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-6">
-                    <button className="flex items-center gap-2 hover:text-black">
-                        <Heart size={16} /> Add to wishlist
-                    </button>
-                    <button className="flex items-center gap-2 hover:text-black">
-                        <Shuffle size={16} /> Compare
-                    </button>
-                </div>
+        {/* Title */}
+        <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 leading-snug">
+          {product.name}
+        </h1>
 
-                {/* Extra Info */}
-                <ul className="space-y-2 text-sm text-gray-600">
-                    <li>✔ Type: Organic</li>
-                    <li>✔ MFG: Jun 4, 2021</li>
-                    <li>✔ LIFE: 30 days</li>
-                </ul>
-            </div>
+        {/* Brand + Rating */}
+        <div className="flex items-center gap-2 flex-wrap text-sm text-gray-600">
+          {product.brand && (
+            <span>Brands : <span className="font-semibold text-gray-800">{product.brand}</span></span>
+          )}
+          <div className="flex items-center gap-1 ml-1">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                size={14}
+                fill={i < Math.round(rating) ? "#f59e0b" : "none"}
+                className={i < Math.round(rating) ? "text-amber-400" : "text-gray-300"}
+              />
+            ))}
+          </div>
+          <span className="text-gray-500 text-sm">{rating} Review</span>
         </div>
-    );
+
+        {/* Price */}
+        <div className="flex items-center gap-3">
+          {oldPrice && (
+            <span className="text-gray-400 line-through text-base">
+              Rs: {oldPrice.toLocaleString()}
+            </span>
+          )}
+          <span className="text-xl font-bold text-red-500">
+            Rs: {realPrice.toLocaleString()}
+          </span>
+        </div>
+
+        {/* Stock */}
+        <div>
+          {inStock ? (
+            <span className="inline-block text-xs font-semibold text-green-600 border border-green-500 px-3 py-1 rounded-full">
+              IN STOCK
+            </span>
+          ) : (
+            <span className="inline-block text-xs font-semibold text-red-500 border border-red-400 px-3 py-1 rounded-full">
+              OUT OF STOCK
+            </span>
+          )}
+        </div>
+
+        {/* Description */}
+        {product.description && (
+          <p className="text-gray-600 text-sm leading-relaxed">
+            {product.description}
+          </p>
+        )}
+
+        {/* Attributes */}
+        {(product.productSize?.length > 0) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-medium text-gray-700">Size:</span>
+            {product.productSize.map(s => (
+              <button key={s._id} className="px-3 py-1 text-sm border border-gray-300 rounded hover:border-gray-900 transition-colors">
+                {s.productSize}
+              </button>
+            ))}
+          </div>
+        )}
+        {(product.productRam?.length > 0) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-medium text-gray-700">RAM:</span>
+            {product.productRam.map(r => (
+              <button key={r._id} className="px-3 py-1 text-sm border border-gray-300 rounded hover:border-gray-900 transition-colors">
+                {r.productRam}
+              </button>
+            ))}
+          </div>
+        )}
+        {(product.productWeight?.length > 0) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-medium text-gray-700">Weight:</span>
+            {product.productWeight.map(w => (
+              <button key={w._id} className="px-3 py-1 text-sm border border-gray-300 rounded hover:border-gray-900 transition-colors">
+                {w.productWeight}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Quantity + Add to Cart + Wishlist + Compare */}
+        <div className="flex items-center gap-2 flex-wrap mt-1">
+
+          {/* Qty */}
+          <div className="flex items-center border border-gray-200 rounded-full overflow-hidden bg-gray-50">
+            <button
+              onClick={() => setQuantity(q => Math.max(1, q - 1))}
+              className="w-9 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+            >
+              <Minus size={13} />
+            </button>
+            <span className="w-8 text-center text-sm font-semibold text-gray-800 select-none">
+              {quantity}
+            </span>
+            <button
+              onClick={() => setQuantity(q => q + 1)}
+              className="w-9 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+            >
+              <Plus size={13} />
+            </button>
+          </div>
+
+          {/* Add to Cart */}
+          <button
+            onClick={handleAddToCart}
+            disabled={!inStock}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold transition-all
+              ${!inStock
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : addedToCart
+                  ? "bg-green-500 text-white"
+                  : "bg-red-500 text-white hover:bg-red-600"
+              }`}
+          >
+            <ShoppingCart size={15} />
+            {addedToCart ? "Added!" : "Add To Cart"}
+          </button>
+
+          {/* Wishlist */}
+          <button
+            onClick={() => setIsWished(w => !w)}
+            className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:border-red-300 transition-colors"
+          >
+            <Heart
+              size={16}
+              fill={isWished ? "#ef4444" : "none"}
+              className={isWished ? "text-red-500" : "text-gray-400"}
+            />
+          </button>
+
+          {/* Compare */}
+          <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:border-gray-400 transition-colors">
+            <ArrowLeftRight size={15} className="text-gray-400" />
+          </button>
+        </div>
+
+      </div>
+    </div>
+  );
 };
 
 export default ProductDetailCard;
