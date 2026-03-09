@@ -1,39 +1,58 @@
-import { createContext, useEffect, useState } from "react";
-import axios from "axios";
+import { createContext, useEffect, useState, useCallback } from "react";
+import { getAllCategoriesForUI } from "../utils/api/categoryApi";
+import { getAllSubCategories } from "../utils/api/subCategoryApi";
 
-export const MyContext = createContext();
+export const StoreContext = createContext();
+export const MyContext = StoreContext;
 
 export const StoreProvider = ({ children }) => {
-  const [countryList, setCountryList]               = useState([]);
-  const [selectedCountry, setSelectedCountry]       = useState("");
-  const [isShowHeaderFooter, setisShowHeaderFooter] = useState(true);
-  const [isLogin, setIsLogin]                       = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
+  const [catLoading, setCatLoading] = useState(true);
+  const [isShowHeaderFooter, setIsShowHeaderFooter] = useState(true);
 
-  useEffect(() => {
-    const getCountry = async () => {
-      try {
-        const res = await axios.get("https://countriesnow.space/api/v0.1/countries/");
-        setCountryList(res.data.data || []);
-      } catch (error) {
-        console.error("Country fetch error:", error);
-      }
-    };
-    getCountry();
+  const fetchData = useCallback(async () => {
+    try {
+      const [cats, subs] = await Promise.all([
+        getAllCategoriesForUI(),
+        getAllSubCategories(),
+      ]);
+      setCategories(Array.isArray(cats) ? cats : []);
+      setSubCategories(Array.isArray(subs) ? subs : []);
+    } catch (error) {
+      console.error("StoreContext fetch error:", error);
+    } finally {
+      setCatLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 2 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  const getSubCatsByCategory = (categoryId) => {
+    return subCategories.filter((s) => {
+      const catId = s.category?._id || s.category;
+      return catId?.toString() === categoryId?.toString();
+    });
+  };
+
   return (
-    <MyContext.Provider
+    <StoreContext.Provider
       value={{
-        countryList,
-        selectedCountry,
-        setSelectedCountry,
+        categories,
+        setCategories,
+        subCategories,
+        setSubCategories,
+        catLoading,
+        getSubCatsByCategory,
         isShowHeaderFooter,
-        setisShowHeaderFooter,
-        isLogin,
-        setIsLogin,
+        setIsShowHeaderFooter,
       }}
     >
       {children}
-    </MyContext.Provider>
+    </StoreContext.Provider>
   );
 };
