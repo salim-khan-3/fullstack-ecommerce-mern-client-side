@@ -1,36 +1,29 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { getAllCategoriesForUI } from "../../../utils/api/categoryApi";
+import { StoreContext } from "../../../context/StoreContext";
 
 const PopularProductHeader = ({ onCategoryChange }) => {
-  const [categories, setCategories]         = useState([]);
+  const { categories } = useContext(StoreContext);
+
   const [activeCategory, setActiveCategory] = useState(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
 
   const tabsRef = useRef({});
   const navRef  = useRef(null);
 
-  // Fetch categories
+  // categories load হলে প্রথমটা select করো
   useEffect(() => {
-    getAllCategoriesForUI()
-      .then((data) => {
-        const list = Array.isArray(data) ? data : [];
-        setCategories(list);
-        if (list.length > 0) {
-          setActiveCategory(list[0]);
-          onCategoryChange?.(list[0]);
-        }
-      })
-      .catch(console.error);
-  }, []);
+    if (categories.length > 0 && !activeCategory) {
+      setActiveCategory(categories[0]);
+      onCategoryChange?.(categories[0]);
+    }
+  }, [categories]);
 
-  // Update indicator position
+  // indicator position update
   useEffect(() => {
     if (!activeCategory) return;
     const el = tabsRef.current[activeCategory._id];
-    if (el) {
-      setIndicatorStyle({ left: el.offsetLeft, width: el.offsetWidth });
-    }
+    if (el) setIndicatorStyle({ left: el.offsetLeft, width: el.offsetWidth });
   }, [activeCategory, categories]);
 
   const handleSelect = (cat) => {
@@ -50,24 +43,15 @@ const PopularProductHeader = ({ onCategoryChange }) => {
         .pp-nav::-webkit-scrollbar { display: none; }
         .pp-nav { scrollbar-width: none; }
         .pp-indicator {
-          position: absolute;
-          bottom: 0;
-          height: 2.5px;
+          position: absolute; bottom: 0; height: 2.5px;
           background: linear-gradient(90deg, #3b82f6, #8b5cf6);
           border-radius: 99px;
           transition: left 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s cubic-bezier(0.4,0,0.2,1);
         }
         .pp-tab {
-          position: relative;
-          cursor: pointer;
-          white-space: nowrap;
-          padding: 10px 4px;
-          font-size: 13px;
-          font-weight: 500;
-          transition: color 0.2s;
-          border: none;
-          background: none;
-          outline: none;
+          position: relative; cursor: pointer; white-space: nowrap;
+          padding: 10px 4px; font-size: 13px; font-weight: 500;
+          transition: color 0.2s; border: none; background: none; outline: none;
         }
         .pp-tab.active { color: #3b82f6; font-weight: 700; }
         .pp-tab:not(.active) { color: #6b7280; }
@@ -100,18 +84,13 @@ const PopularProductHeader = ({ onCategoryChange }) => {
 
           {/* Right — Category Tabs */}
           <div className="flex items-center gap-1 min-w-0 flex-1 sm:justify-end">
-            <button
-              onClick={() => scrollNav(-1)}
-              className="shrink-0 w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all"
-            >
+            <button onClick={() => scrollNav(-1)}
+              className="shrink-0 w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all">
               <ChevronLeft size={14} />
             </button>
 
             <div className="relative flex-1 overflow-hidden">
-              <div
-                ref={navRef}
-                className="pp-nav flex items-center gap-5 overflow-x-auto pb-[2px]"
-              >
+              <div ref={navRef} className="pp-nav flex items-center gap-5 overflow-x-auto pb-[2px]">
                 {categories.map((cat) => (
                   <button
                     key={cat._id}
@@ -126,10 +105,8 @@ const PopularProductHeader = ({ onCategoryChange }) => {
               </div>
             </div>
 
-            <button
-              onClick={() => scrollNav(1)}
-              className="shrink-0 w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all"
-            >
+            <button onClick={() => scrollNav(1)}
+              className="shrink-0 w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all">
               <ChevronRight size={14} />
             </button>
           </div>
@@ -140,7 +117,6 @@ const PopularProductHeader = ({ onCategoryChange }) => {
 };
 
 export default PopularProductHeader;
-
 
 
 

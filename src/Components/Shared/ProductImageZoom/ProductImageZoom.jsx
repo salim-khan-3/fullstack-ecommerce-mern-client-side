@@ -13,7 +13,7 @@ const ProductImageZoom = ({ Image }) => {
   return (
     <div
       onMouseMove={handleMove}
-      className="w-[420px] h-[420px] overflow-hidden border rounded-lg cursor-zoom-in"
+      className="w-full h-[420px] overflow-hidden rounded-lg cursor-zoom-in"
     >
       <img
         src={Image}

@@ -26,3 +26,14 @@ export const getNewProducts = async (limit = 10) => {
     throw error.response ? error.response.data : new Error("Network Error");
   }
 };
+
+
+
+export const getPopularProducts = async () => {
+  try {
+    const response = await axiosInstance.get('/products/popular');
+    return response.data.products || [];
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Network Error");
+  }
+};
