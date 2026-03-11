@@ -13,6 +13,7 @@ import { StoreProvider, MyContext } from "./context/Storecontext";
 import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from "react-hot-toast";
 import { CartProvider } from "./context/CartContext";
+import MyList from "./pages/MyList/MyList";
 
 export { MyContext };
 
@@ -29,6 +30,7 @@ const AppLayout = () => {
         <Route path="/cart" element={<Cart />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/my-list" element={<MyList />} />
       </Routes>
       {isShowHeaderFooter && <Footer />}
     </>
