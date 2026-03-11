@@ -1,48 +1,17 @@
-import { useState, useEffect } from "react";
+import { useContext } from "react";
 import { X, Star, Loader2, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { getMyList, removeFromMyListApi } from "../../utils/api/myListApi";
-import toast from "react-hot-toast";
+import { StoreContext } from "../../context/StoreContext";
 
 const MyList = () => {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [removingId, setRemovingId] = useState(null);
+  const { token } = useAuth();
+  const { myListItems, myListLoading, removeFromMyList } = useContext(StoreContext);
 
-  const { token, isLoggedIn } = useAuth();
-
-  useEffect(() => {
-    if (!isLoggedIn) return;
-    fetchMyList();
-  }, [isLoggedIn]);
-
-  const fetchMyList = async () => {
-    setLoading(true);
-    try {
-      const data = await getMyList(token);
-      setItems(data.myList || []);
-    } catch {
-      toast.error("Failed to load wishlist");
-    } finally {
-      setLoading(false);
-    }
+  const handleRemove = (itemId) => {
+    removeFromMyList(itemId, token);
   };
 
-  const handleRemove = async (itemId) => {
-    setRemovingId(itemId);
-    try {
-      await removeFromMyListApi(itemId, token);
-      setItems((prev) => prev.filter((i) => i._id !== itemId));
-      toast.success("Removed from My List");
-    } catch {
-      toast.error("Failed to remove item");
-    } finally {
-      setRemovingId(null);
-    }
-  };
-
-  // Skeleton row
   const SkeletonRow = () => (
     <tr className="border-b border-gray-100">
       <td className="py-5">
@@ -67,34 +36,31 @@ const MyList = () => {
         <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight uppercase">
           My List
         </h1>
-        {!loading && (
+        {!myListLoading && (
           <p className="text-gray-500 mt-1 text-sm">
             There are{" "}
-            <span className="text-red-500 font-bold">{items.length}</span>{" "}
+            <span className="text-red-500 font-bold">{myListItems.length}</span>{" "}
             products in your My List
           </p>
         )}
       </div>
 
       {/* Empty state */}
-      {!loading && items.length === 0 && (
+      {!myListLoading && myListItems.length === 0 && (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <div className="w-20 h-20 rounded-2xl bg-red-50 flex items-center justify-center mb-5">
             <Heart size={36} className="text-red-400" />
           </div>
           <h2 className="text-xl font-bold text-gray-700 mb-1">Your list is empty</h2>
           <p className="text-gray-400 text-sm mb-6">Save products you love to find them here later.</p>
-          <Link
-            to="/"
-            className="px-6 py-3 bg-red-500 text-white rounded-full text-sm font-semibold hover:bg-red-600 transition-all"
-          >
+          <Link to="/" className="px-6 py-3 bg-red-500 text-white rounded-full text-sm font-semibold hover:bg-red-600 transition-all">
             Continue Shopping
           </Link>
         </div>
       )}
 
       {/* Table */}
-      {(loading || items.length > 0) && (
+      {(myListLoading || myListItems.length > 0) && (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[500px]">
             <thead>
@@ -106,16 +72,10 @@ const MyList = () => {
             </thead>
             <tbody className="divide-y divide-gray-100">
 
-              {/* Skeleton */}
-              {loading && [...Array(3)].map((_, i) => <SkeletonRow key={i} />)}
+              {myListLoading && [...Array(3)].map((_, i) => <SkeletonRow key={i} />)}
 
-              {/* Real data */}
-              {!loading && items.map((item) => (
-                <tr
-                  key={item._id}
-                  className={`text-sm transition-opacity duration-200 ${removingId === item._id ? "opacity-40 pointer-events-none" : "opacity-100"}`}
-                >
-                  {/* Product */}
+              {!myListLoading && myListItems.map((item) => (
+                <tr key={item._id} className="text-sm">
                   <td className="py-5">
                     <Link to={`/product/${item.productId}`} className="flex items-center gap-4">
                       <img
@@ -129,35 +89,26 @@ const MyList = () => {
                         </p>
                         <div className="flex items-center gap-0.5">
                           {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              size={13}
+                            <Star key={i} size={13}
                               fill={i < Math.round(item.rating) ? "#f59e0b" : "none"}
                               color={i < Math.round(item.rating) ? "#f59e0b" : "#d1d5db"}
-                              strokeWidth={1.5}
-                            />
+                              strokeWidth={1.5} />
                           ))}
                         </div>
                       </div>
                     </Link>
                   </td>
 
-                  {/* Price */}
                   <td className="py-5 text-gray-600 font-medium">
                     Rs {item.price?.toLocaleString()}
                   </td>
 
-                  {/* Remove */}
                   <td className="py-5 text-center">
                     <button
                       onClick={() => handleRemove(item._id)}
-                      disabled={removingId === item._id}
-                      className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40"
+                      className="text-gray-400 hover:text-red-500 transition-colors"
                     >
-                      {removingId === item._id
-                        ? <Loader2 size={18} className="animate-spin text-red-400" />
-                        : <X size={20} />
-                      }
+                      <X size={20} />
                     </button>
                   </td>
                 </tr>
