@@ -1,10 +1,29 @@
-import React from "react";
-import { X, Minus, Plus } from "lucide-react";
+import React, { useState } from "react";
+import { X, Minus, Plus, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
+  const [updating, setUpdating] = useState(false);
+  const [removing, setRemoving] = useState(false);
+
+  const handleQuantityChange = async (newQty) => {
+    if (newQty < 1) return;
+    setUpdating(true);
+    await onUpdateQuantity(item._id, newQty, item.price);
+    setUpdating(false);
+  };
+
+  const handleRemove = async () => {
+    setRemoving(true);
+    await onRemove(item._id);
+    setRemoving(false);
+  };
+
+  const isLoading = updating || removing;
+
   return (
-    <tr className="text-sm border-b border-gray-100 last:border-0">
+    <tr className={`text-sm border-b border-gray-100 last:border-0 transition-opacity duration-200 ${isLoading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
+
       {/* Product */}
       <td className="py-6">
         <Link to={`/product/${item.productId}`} className="flex items-center gap-4">
@@ -32,16 +51,25 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
       <td className="py-6">
         <div className="flex items-center justify-center gap-3">
           <button
-            onClick={() => onUpdateQuantity(item._id, item.quantity - 1, item.price)}
-            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-40"
-            disabled={item.quantity <= 1}
+            onClick={() => handleQuantityChange(item.quantity - 1)}
+            disabled={item.quantity <= 1 || updating}
+            className="w-8 h-8 cursor-pointer rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Minus size={14} />
           </button>
-          <span className="w-4 text-center font-medium">{item.quantity}</span>
+
+       
+          <span className="w-6 text-center font-medium flex items-center justify-center">
+            {updating
+              ? <Loader2 size={14} className="animate-spin text-red-400" />
+              : item.quantity
+            }
+          </span>
+
           <button
-            onClick={() => onUpdateQuantity(item._id, item.quantity + 1, item.price)}
-            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+            onClick={() => handleQuantityChange(item.quantity + 1)}
+            disabled={updating}
+            className="w-8 h-8 cursor-pointer rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Plus size={14} />
           </button>
@@ -56,10 +84,14 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
       {/* Remove */}
       <td className="py-6 text-center">
         <button
-          onClick={() => onRemove(item._id)}
-          className="text-gray-400 hover:text-red-500 transition-colors"
+          onClick={handleRemove}
+          disabled={removing}
+          className="text-gray-400 cursor-pointer hover:text-red-500 transition-colors disabled:opacity-40"
         >
-          <X size={20} />
+          {removing
+            ? <Loader2 size={18} className="animate-spin text-red-400" />
+            : <X size={20} />
+          }
         </button>
       </td>
     </tr>
