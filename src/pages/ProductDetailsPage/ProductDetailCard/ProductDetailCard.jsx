@@ -6,6 +6,7 @@ import ProductImageGallery from "../../../Components/Shared/ProductImageGallery/
 import { useCart } from "../../../context/CartContext";
 import { useAuth } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const ProductDetailCard = ({ product }) => {
   const [quantity, setQuantity] = useState(1);
