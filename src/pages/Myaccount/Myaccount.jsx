@@ -132,34 +132,30 @@ const MyAccount = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-pink-50 py-10 px-4">
+    <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-5xl mx-auto">
 
         {/* ── Top Profile Card ── */}
-        <div className="relative bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 rounded-3xl p-8 mb-6 overflow-hidden">
-          {/* bg blobs */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-20 w-40 h-40 bg-white/5 rounded-full translate-y-1/2" />
-
-          <div className="relative flex items-center gap-6 flex-wrap">
+        <div className="bg-white rounded-3xl p-8 mb-6 shadow-sm border border-gray-100">
+          <div className="flex items-center gap-6 flex-wrap">
             {/* Avatar */}
             <div className="relative shrink-0">
-              <div className="w-24 h-24 rounded-2xl bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center text-white text-4xl font-black shadow-xl">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-3xl font-black shadow-md">
                 {avatarLetter}
               </div>
-              <button className="absolute -bottom-1 -right-1 w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-                <Camera size={14} className="text-violet-600" />
+              <button className="absolute -bottom-1 -right-1 w-7 h-7 rounded-xl bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:scale-110 transition-transform">
+                <Camera size={13} className="text-gray-500" />
               </button>
             </div>
 
             {/* Info */}
             <div className="flex-1">
-              <h1 className="text-2xl font-black text-white mb-1">{user?.name}</h1>
-              <p className="text-white/70 text-sm flex items-center gap-1.5">
+              <h1 className="text-xl font-black text-gray-900 mb-1">{user?.name}</h1>
+              <p className="text-gray-400 text-sm flex items-center gap-1.5">
                 <Mail size={13} /> {user?.email}
               </p>
               {user?.phone && (
-                <p className="text-white/70 text-sm flex items-center gap-1.5 mt-0.5">
+                <p className="text-gray-400 text-sm flex items-center gap-1.5 mt-0.5">
                   <Phone size={13} /> {user?.phone}
                 </p>
               )}
@@ -168,12 +164,12 @@ const MyAccount = () => {
             {/* Stats */}
             <div className="flex gap-3 flex-wrap">
               {[
-                { label: "Orders",   value: statsLoading ? "—" : orderCount, icon: ShoppingBag, color: "from-white/20 to-white/10" },
-                { label: "Wishlist", value: statsLoading ? "—" : wishCount,  icon: Heart,       color: "from-pink-400/30 to-pink-300/10" },
+                { label: "Orders",   value: statsLoading ? "—" : orderCount },
+                { label: "Wishlist", value: statsLoading ? "—" : wishCount  },
               ].map((s) => (
-                <div key={s.label} className={`bg-gradient-to-br ${s.color} backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3 text-center min-w-[90px]`}>
-                  <p className="text-2xl font-black text-white">{s.value}</p>
-                  <p className="text-white/70 text-xs font-medium">{s.label}</p>
+                <div key={s.label} className="bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3 text-center min-w-[90px]">
+                  <p className="text-2xl font-black text-gray-800">{s.value}</p>
+                  <p className="text-gray-400 text-xs font-medium">{s.label}</p>
                 </div>
               ))}
             </div>
