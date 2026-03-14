@@ -12,7 +12,7 @@ import toast from "react-hot-toast";
 import axiosInstance from "../../utils/api/axiosInstance";
 
 const MyAccount = () => {
-  const { user, token, login } = useAuth();
+  const { user, token, updateUser } = useAuth();
 
   // ── Profile state ──
   const [profileForm, setProfileForm] = useState({
@@ -71,11 +71,11 @@ const MyAccount = () => {
     }
     setSavingProfile(true);
     try {
-      const res = await axiosInstance.put(`/user/${user.id}`, profileForm, {
+      const userId = user?.id || user?._id;
+      const res = await axiosInstance.put(`/user/${userId}`, profileForm, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // update auth context
-      login(token, { ...user, ...res.data.user });
+      updateUser(res.data.user);
       setProfileSaved(true);
       setTimeout(() => setProfileSaved(false), 2500);
       toast.success("Profile updated");
@@ -101,8 +101,9 @@ const MyAccount = () => {
     }
     setSavingPass(true);
     try {
+      const userId = user?.id || user?._id;
       await axiosInstance.put(
-        `/user/${user.id}`,
+        `/user/${userId}`,
         { password: passwordForm.newPass },
         { headers: { Authorization: `Bearer ${token}` } }
       );
