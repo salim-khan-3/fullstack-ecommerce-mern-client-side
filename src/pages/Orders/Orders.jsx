@@ -1,300 +1,354 @@
-import React, { useState } from 'react';
-
-const sampleOrders = [
-  {
-    orderId: "ORD-2024-001",
-    paymentId: "PAY-8821",
-    products: ["Nike Air Max", "Adidas Tee"],
-    name: "Arif Rahman",
-    phone: "+880 1712-345678",
-    address: "House 12, Road 5, Dhanmondi",
-    pincode: "1205",
-    totalAmount: 4850,
-    email: "arif@gmail.com",
-    userId: "USR-441",
-    orderStatus: "Delivered",
-    date: "2024-03-10",
-  },
-  {
-    orderId: "ORD-2024-002",
-    paymentId: "PAY-9934",
-    products: ["Samsung Watch"],
-    name: "Nadia Islam",
-    phone: "+880 1855-667788",
-    address: "Apt 4B, Mirpur-10",
-    pincode: "1216",
-    totalAmount: 12500,
-    email: "nadia.islam@yahoo.com",
-    userId: "USR-882",
-    orderStatus: "Processing",
-    date: "2024-03-11",
-  },
-  {
-    orderId: "ORD-2024-003",
-    paymentId: "PAY-7712",
-    products: ["Levi's Jeans", "Polo Shirt", "Belt"],
-    name: "Tanvir Hossain",
-    phone: "+880 1933-112233",
-    address: "Block C, Uttara Sector 7",
-    pincode: "1230",
-    totalAmount: 6200,
-    email: "tanvir.h@outlook.com",
-    userId: "USR-229",
-    orderStatus: "Shipped",
-    date: "2024-03-09",
-  },
-  {
-    orderId: "ORD-2024-004",
-    paymentId: "PAY-6650",
-    products: ["iPhone Case"],
-    name: "Sumaiya Akter",
-    phone: "+880 1611-998877",
-    address: "Road 3, Bashundhara R/A",
-    pincode: "1229",
-    totalAmount: 890,
-    email: "sumaiya.a@gmail.com",
-    userId: "USR-557",
-    orderStatus: "Cancelled",
-    date: "2024-03-08",
-  },
-  {
-    orderId: "ORD-2024-005",
-    paymentId: "PAY-5541",
-    products: ["Puma Sneakers", "Sports Bag"],
-    name: "Rakib Uddin",
-    phone: "+880 1744-556677",
-    address: "Lane 9, Gulshan-2",
-    pincode: "1212",
-    totalAmount: 9300,
-    email: "rakib.uddin@gmail.com",
-    userId: "USR-773",
-    orderStatus: "Pending",
-    date: "2024-03-12",
-  },
-];
+import { useState, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
+import { getMyOrdersApi, cancelOrderApi } from "../../utils/api/orderApi";
+import { X, Loader2, ShoppingBag, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const statusConfig = {
-  Delivered: { bg: "bg-emerald-100", text: "text-emerald-700", dot: "bg-emerald-500" },
-  Processing: { bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-500" },
-  Shipped: { bg: "bg-violet-100", text: "text-violet-700", dot: "bg-violet-500" },
-  Cancelled: { bg: "bg-red-100", text: "text-red-700", dot: "bg-red-400" },
-  Pending: { bg: "bg-amber-100", text: "text-amber-700", dot: "bg-amber-500" },
+  processing: { bg: "bg-blue-100",    text: "text-blue-700",    dot: "bg-blue-500"    },
+  confirmed:  { bg: "bg-indigo-100",  text: "text-indigo-700",  dot: "bg-indigo-500"  },
+  shipped:    { bg: "bg-violet-100",  text: "text-violet-700",  dot: "bg-violet-500"  },
+  delivered:  { bg: "bg-emerald-100", text: "text-emerald-700", dot: "bg-emerald-500" },
+  cancelled:  { bg: "bg-red-100",     text: "text-red-700",     dot: "bg-red-400"     },
 };
 
 const Orders = () => {
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("All");
+  const { token } = useAuth();
+  const [orders, setOrders]               = useState([]);
+  const [loading, setLoading]             = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [cancellingId, setCancellingId]   = useState(null);
+  const [filterStatus, setFilterStatus]   = useState("all");
 
-  const filtered = sampleOrders.filter((o) => {
-    const matchSearch =
-      o.orderId.toLowerCase().includes(search.toLowerCase()) ||
-      o.name.toLowerCase().includes(search.toLowerCase()) ||
-      o.email.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = filterStatus === "All" || o.orderStatus === filterStatus;
-    return matchSearch && matchStatus;
-  });
+  useEffect(() => { fetchOrders(); }, []);
 
-  const totalRevenue = sampleOrders.reduce((s, o) => s + o.totalAmount, 0);
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const data = await getMyOrdersApi(token);
+      setOrders(data.orders || []);
+    } catch {
+      toast.error("Failed to load orders");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = async (orderId) => {
+    setCancellingId(orderId);
+    try {
+      await cancelOrderApi(orderId, token);
+      setOrders((prev) =>
+        prev.map((o) => o._id === orderId ? { ...o, orderStatus: "cancelled" } : o)
+      );
+      if (selectedOrder?._id === orderId) {
+        setSelectedOrder((prev) => ({ ...prev, orderStatus: "cancelled" }));
+      }
+      toast.success("Order cancelled");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to cancel order");
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
+  const filtered = orders.filter((o) =>
+    filterStatus === "all" || o.orderStatus === filterStatus
+  );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;600;700&display=swap');
-        * { box-sizing: border-box; }
-        .stat-card { background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid rgba(255,255,255,0.08); }
-        .table-row:hover { background: rgba(255,255,255,0.04); transition: background 0.15s; }
-        .glow-dot { box-shadow: 0 0 6px currentColor; }
-        .modal-bg { backdrop-filter: blur(8px); background: rgba(2, 6, 23, 0.85); }
-        .tag { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); }
-      `}</style>
+    <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto">
 
-      {/* Header */}
-      <div className="border-b border-slate-800 px-8 py-5 flex items-center justify-between">
-        <div>
-          <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">Dashboard</p>
-          <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Orders
-          </h1>
+        {/* Header */}
+        <div className="mb-8">
+          <p className="text-xs font-bold text-indigo-500 uppercase tracking-widest mb-1">My Account</p>
+          <h1 className="text-4xl font-extrabold text-gray-900">My Orders</h1>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-xs font-bold">A</div>
-          <span className="text-sm text-slate-400">Admin</span>
-        </div>
-      </div>
 
-      <div className="px-8 py-6 space-y-6">
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-4">
-          {[
-            { label: "Total Orders", value: sampleOrders.length, accent: "text-blue-400" },
-            { label: "Revenue", value: `৳${totalRevenue.toLocaleString()}`, accent: "text-emerald-400" },
-            { label: "Delivered", value: sampleOrders.filter(o => o.orderStatus === "Delivered").length, accent: "text-emerald-400" },
-            { label: "Pending / Processing", value: sampleOrders.filter(o => ["Pending", "Processing"].includes(o.orderStatus)).length, accent: "text-amber-400" },
-          ].map((s) => (
-            <div key={s.label} className="stat-card rounded-xl p-4">
-              <p className="text-xs text-slate-500 mb-1">{s.label}</p>
-              <p className={`text-2xl font-bold ${s.accent}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{s.value}</p>
-            </div>
+        {/* Filter */}
+        <div className="flex gap-2 flex-wrap mb-6">
+          {["all", "processing", "confirmed", "shipped", "delivered", "cancelled"].map((s) => (
+            <button key={s} onClick={() => setFilterStatus(s)}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold capitalize transition-all
+                ${filterStatus === s
+                  ? "bg-gray-900 text-white"
+                  : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
+                }`}
+            >
+              {s}
+            </button>
           ))}
         </div>
 
-        {/* Filters */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-64">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M11 19A8 8 0 1011 3a8 8 0 000 16z" />
-            </svg>
-            <input
-              className="w-full bg-slate-900 border border-slate-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-slate-600"
-              placeholder="Search order, name, email…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+        {/* Empty state */}
+        {!loading && orders.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-20 h-20 rounded-2xl bg-indigo-50 flex items-center justify-center mb-5">
+              <ShoppingBag size={36} className="text-indigo-400" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-700 mb-1">No orders yet</h2>
+            <p className="text-gray-400 text-sm mb-6">Start shopping to see your orders here.</p>
+            <Link to="/" className="px-6 py-3 bg-indigo-600 text-white rounded-full text-sm font-semibold hover:bg-indigo-700 transition-all">
+              Start Shopping
+            </Link>
           </div>
-          <div className="flex gap-2">
-            {["All", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"].map((s) => (
-              <button
-                key={s}
-                onClick={() => setFilterStatus(s)}
-                className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                  filterStatus === s
-                    ? "bg-slate-100 text-slate-900"
-                    : "bg-slate-900 border border-slate-800 text-slate-400 hover:border-slate-600"
-                }`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
+        )}
 
         {/* Table */}
-        <div className="rounded-xl border border-slate-800 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-800 bg-slate-900">
-                {["Order ID", "Payment ID", "Products", "Customer", "Phone", "Address", "Amount", "Status", "Date", ""].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan={10} className="text-center py-16 text-slate-600">No orders found</td></tr>
-              ) : (
-                filtered.map((order) => {
-                  const sc = statusConfig[order.orderStatus];
-                  return (
-                    <tr key={order.orderId} className="table-row border-b border-slate-800/60 last:border-0">
-                      <td className="px-4 py-3.5">
-                        <span className="font-mono text-xs text-blue-400">{order.orderId}</span>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span className="font-mono text-xs text-slate-500">{order.paymentId}</span>
-                      </td>
-                      <td className="px-4 py-3.5 max-w-36">
-                        <div className="flex flex-wrap gap-1">
-                          {order.products.map((p) => (
-                            <span key={p} className="tag rounded text-xs px-1.5 py-0.5 text-slate-300">{p}</span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <p className="font-medium text-slate-200">{order.name}</p>
-                        <p className="text-xs text-slate-600">{order.email}</p>
-                      </td>
-                      <td className="px-4 py-3.5 text-slate-400 whitespace-nowrap">{order.phone}</td>
-                      <td className="px-4 py-3.5 text-slate-500 text-xs max-w-32 truncate">{order.address}</td>
-                      <td className="px-4 py-3.5">
-                        <span className="font-semibold text-slate-200">৳{order.totalAmount.toLocaleString()}</span>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${sc.bg} ${sc.text}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${sc.dot} glow-dot`}></span>
-                          {order.orderStatus}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 text-slate-500 text-xs whitespace-nowrap">{order.date}</td>
-                      <td className="px-4 py-3.5">
-                        <button
-                          onClick={() => setSelectedOrder(order)}
-                          className="text-slate-600 hover:text-slate-300 transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        </button>
+        {(loading || orders.length > 0) && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[700px]">
+                <thead>
+                  <tr className="bg-gray-100 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    <th className="px-5 py-4 rounded-tl-2xl">Order</th>
+                    <th className="px-5 py-4">Items</th>
+                    <th className="px-5 py-4">Date</th>
+                    <th className="px-5 py-4">Payment</th>
+                    <th className="px-5 py-4">Total</th>
+                    <th className="px-5 py-4">Status</th>
+                    <th className="px-5 py-4 text-center rounded-tr-2xl">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+
+                  {/* Skeleton */}
+                  {loading && [...Array(4)].map((_, i) => (
+                    <tr key={i}>
+                      {[...Array(7)].map((_, j) => (
+                        <td key={j} className="px-5 py-4">
+                          <div className="h-4 bg-gray-100 rounded-full animate-pulse w-3/4" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+
+                  {/* Real rows */}
+                  {!loading && filtered.map((order) => {
+                    const sc = statusConfig[order.orderStatus] || statusConfig.processing;
+                    return (
+                      <tr key={order._id} className="hover:bg-gray-50 transition-colors">
+
+                        {/* Order ID */}
+                        <td className="px-5 py-4">
+                          <span className="text-xs font-mono font-bold text-indigo-500 bg-indigo-50 px-2 py-1 rounded-lg">
+                            #{order._id.slice(-8).toUpperCase()}
+                          </span>
+                        </td>
+
+                        {/* Items thumbnails */}
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-2">
+                            <div className="flex -space-x-2">
+                              {order.orderItems.slice(0, 3).map((item, i) => (
+                                <img key={i} src={item.image} alt={item.productTitle}
+                                  className="w-8 h-8 rounded-lg object-cover border-2 border-white bg-gray-100 shrink-0" />
+                              ))}
+                              {order.orderItems.length > 3 && (
+                                <div className="w-8 h-8 rounded-lg bg-gray-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-gray-500">
+                                  +{order.orderItems.length - 3}
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-xs text-gray-400">
+                              {order.orderItems.length} item{order.orderItems.length !== 1 ? "s" : ""}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Date */}
+                        <td className="px-5 py-4 text-xs text-gray-500 whitespace-nowrap">
+                          {new Date(order.createdAt).toLocaleDateString("en-GB", {
+                            day: "numeric", month: "short", year: "numeric"
+                          })}
+                        </td>
+
+                        {/* Payment */}
+                        <td className="px-5 py-4">
+                          <p className="text-xs font-medium text-gray-700 capitalize">{order.paymentMethod}</p>
+                          <p className="text-[11px] text-gray-400 capitalize">{order.paymentStatus}</p>
+                        </td>
+
+                        {/* Total */}
+                        <td className="px-5 py-4">
+                          <span className="text-sm font-black text-gray-800">
+                            ৳{order.totalPrice?.toLocaleString()}
+                          </span>
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-5 py-4">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${sc.bg} ${sc.text}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                            {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
+                          </span>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-5 py-4">
+                          <div className="flex items-center justify-center gap-3">
+                            {!["shipped", "delivered", "cancelled"].includes(order.orderStatus) && (
+                              <button
+                                onClick={() => handleCancel(order._id)}
+                                disabled={cancellingId === order._id}
+                                className="text-xs text-red-400 hover:text-red-600 font-semibold transition-colors disabled:opacity-40 flex items-center gap-1"
+                              >
+                                {cancellingId === order._id
+                                  ? <Loader2 size={12} className="animate-spin" />
+                                  : <X size={12} />
+                                }
+                                Cancel
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setSelectedOrder(order)}
+                              className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-700 font-semibold transition-colors"
+                            >
+                              Details <ChevronRight size={12} />
+                            </button>
+                          </div>
+                        </td>
+
+                      </tr>
+                    );
+                  })}
+
+                  {/* No filter match */}
+                  {!loading && filtered.length === 0 && orders.length > 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-5 py-16 text-center text-sm text-gray-400">
+                        No orders match the selected filter.
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                  )}
 
-        <div className="flex items-center justify-between text-xs text-slate-600">
-          <span>Showing {filtered.length} of {sampleOrders.length} orders</span>
-          <span>Last updated: just now</span>
-        </div>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer */}
+            {!loading && (
+              <div className="px-5 py-3 border-t border-gray-100 text-xs text-gray-400">
+                Showing {filtered.length} of {orders.length} orders
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
 
-      {/* Detail Modal */}
+      {/* ── DETAIL MODAL ── */}
       {selectedOrder && (
-        <div className="fixed inset-0 modal-bg z-50 flex items-center justify-center p-4" onClick={() => setSelectedOrder(null)}>
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-lg w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-start justify-between mb-5">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedOrder(null)}>
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}>
+
+            {/* Modal Header */}
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
               <div>
-                <p className="text-xs text-slate-500 mb-1">Order Details</p>
-                <h2 className="text-lg font-bold text-slate-100" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{selectedOrder.orderId}</h2>
+                <p className="text-xs text-gray-400 mb-0.5">Order Details</p>
+                <h2 className="text-base font-bold text-gray-800">
+                  #{selectedOrder._id.slice(-8).toUpperCase()}
+                </h2>
               </div>
-              <button onClick={() => setSelectedOrder(null)} className="text-slate-600 hover:text-slate-300 transition-colors">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+              <button onClick={() => setSelectedOrder(null)}
+                className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
+                <X size={15} className="text-gray-500" />
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                ["Customer", selectedOrder.name],
-                ["Email", selectedOrder.email],
-                ["Phone", selectedOrder.phone],
-                ["User ID", selectedOrder.userId],
-                ["Payment ID", selectedOrder.paymentId],
-                ["Date", selectedOrder.date],
-                ["Pincode", selectedOrder.pincode],
-                ["Total Amount", `৳${selectedOrder.totalAmount.toLocaleString()}`],
-              ].map(([k, v]) => (
-                <div key={k} className="bg-slate-800/60 rounded-lg px-3 py-2.5">
-                  <p className="text-xs text-slate-500 mb-0.5">{k}</p>
-                  <p className="text-sm text-slate-200 font-medium">{v}</p>
-                </div>
-              ))}
-              <div className="col-span-2 bg-slate-800/60 rounded-lg px-3 py-2.5">
-                <p className="text-xs text-slate-500 mb-0.5">Address</p>
-                <p className="text-sm text-slate-200">{selectedOrder.address}</p>
-              </div>
-              <div className="col-span-2 bg-slate-800/60 rounded-lg px-3 py-2.5">
-                <p className="text-xs text-slate-500 mb-1.5">Products</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedOrder.products.map((p) => (
-                    <span key={p} className="tag rounded-md text-xs px-2 py-1 text-slate-300">{p}</span>
+
+            <div className="p-6 space-y-5">
+
+              {/* Status */}
+              {(() => {
+                const sc = statusConfig[selectedOrder.orderStatus] || statusConfig.processing;
+                return (
+                  <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${sc.bg} ${sc.text}`}>
+                    <span className={`w-2 h-2 rounded-full ${sc.dot}`} />
+                    {selectedOrder.orderStatus.charAt(0).toUpperCase() + selectedOrder.orderStatus.slice(1)}
+                  </span>
+                );
+              })()}
+
+              {/* Items */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Items</p>
+                <div className="space-y-2.5">
+                  {selectedOrder.orderItems.map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
+                      <img src={item.image} alt={item.productTitle}
+                        className="w-12 h-12 rounded-lg object-cover bg-gray-100 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-700 line-clamp-1">{item.productTitle}</p>
+                        <p className="text-xs text-gray-400">Qty: {item.quantity} × ৳{item.price?.toLocaleString()}</p>
+                      </div>
+                      <span className="text-sm font-bold text-gray-700 shrink-0">৳{item.subTotal?.toLocaleString()}</span>
+                    </div>
                   ))}
                 </div>
               </div>
-              <div className="col-span-2">
-                {(() => {
-                  const sc = statusConfig[selectedOrder.orderStatus];
-                  return (
-                    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${sc.bg} ${sc.text}`}>
-                      <span className={`w-2 h-2 rounded-full ${sc.dot}`}></span>
-                      {selectedOrder.orderStatus}
-                    </span>
-                  );
-                })()}
+
+              {/* Pricing */}
+              <div className="bg-gray-50 rounded-2xl p-4 space-y-2">
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>Subtotal</span><span>৳{selectedOrder.subTotal?.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>Shipping</span>
+                  <span>{selectedOrder.shippingCost === 0 ? "Free" : `৳${selectedOrder.shippingCost}`}</span>
+                </div>
+                <div className="flex justify-between font-bold text-gray-800 pt-2 border-t border-gray-200">
+                  <span>Total</span>
+                  <span className="text-indigo-600">৳{selectedOrder.totalPrice?.toLocaleString()}</span>
+                </div>
               </div>
+
+              {/* Shipping Address */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Shipping Address</p>
+                <div className="bg-gray-50 rounded-2xl p-4 text-sm text-gray-600 space-y-1">
+                  <p className="font-semibold text-gray-800">
+                    {selectedOrder.shippingAddress.firstName} {selectedOrder.shippingAddress.lastName}
+                  </p>
+                  <p>{selectedOrder.shippingAddress.street1}</p>
+                  {selectedOrder.shippingAddress.street2 && <p>{selectedOrder.shippingAddress.street2}</p>}
+                  <p>{selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state} {selectedOrder.shippingAddress.zipCode}</p>
+                  <p>{selectedOrder.shippingAddress.country}</p>
+                  <p className="text-indigo-500">{selectedOrder.shippingAddress.phone}</p>
+                  <p className="text-indigo-500">{selectedOrder.shippingAddress.email}</p>
+                </div>
+              </div>
+
+              {/* Payment Info */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  ["Payment Method", selectedOrder.paymentMethod],
+                  ["Payment Status", selectedOrder.paymentStatus],
+                  ["Shipping Method", selectedOrder.shippingMethod],
+                  ["Order Date", new Date(selectedOrder.createdAt).toLocaleDateString("en-GB")],
+                ].map(([k, v]) => (
+                  <div key={k} className="bg-gray-50 rounded-xl px-4 py-3">
+                    <p className="text-xs text-gray-400 mb-0.5">{k}</p>
+                    <p className="text-sm font-semibold text-gray-700 capitalize">{v}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Cancel */}
+              {!["shipped", "delivered", "cancelled"].includes(selectedOrder.orderStatus) && (
+                <button onClick={() => handleCancel(selectedOrder._id)}
+                  disabled={cancellingId === selectedOrder._id}
+                  className="w-full py-3 rounded-2xl border-2 border-red-200 text-red-500 text-sm font-bold hover:bg-red-50 transition-all disabled:opacity-40 flex items-center justify-center gap-2">
+                  {cancellingId === selectedOrder._id
+                    ? <><Loader2 size={15} className="animate-spin" /> Cancelling...</>
+                    : "Cancel Order"
+                  }
+                </button>
+              )}
+
             </div>
           </div>
         </div>
@@ -304,3 +358,718 @@ const Orders = () => {
 };
 
 export default Orders;
+
+
+
+
+
+
+
+
+
+
+
+
+// import { useState, useEffect } from "react";
+// import { useAuth } from "../../context/AuthContext";
+// import { getMyOrdersApi, cancelOrderApi } from "../../utils/api/orderApi";
+// import { Package, ChevronRight, X, Loader2, ShoppingBag } from "lucide-react";
+// import { Link } from "react-router-dom";
+// import toast from "react-hot-toast";
+
+// const statusConfig = {
+//   processing: { bg: "bg-blue-100",    text: "text-blue-700",    dot: "bg-blue-500"    },
+//   confirmed:  { bg: "bg-indigo-100",  text: "text-indigo-700",  dot: "bg-indigo-500"  },
+//   shipped:    { bg: "bg-violet-100",  text: "text-violet-700",  dot: "bg-violet-500"  },
+//   delivered:  { bg: "bg-emerald-100", text: "text-emerald-700", dot: "bg-emerald-500" },
+//   cancelled:  { bg: "bg-red-100",     text: "text-red-700",     dot: "bg-red-400"     },
+// };
+
+// const Orders = () => {
+//   const { token } = useAuth();
+//   const [orders, setOrders]               = useState([]);
+//   const [loading, setLoading]             = useState(true);
+//   const [selectedOrder, setSelectedOrder] = useState(null);
+//   const [cancellingId, setCancellingId]   = useState(null);
+//   const [filterStatus, setFilterStatus]   = useState("all");
+
+//   useEffect(() => {
+//     fetchOrders();
+//   }, []);
+
+//   const fetchOrders = async () => {
+//     setLoading(true);
+//     try {
+//       const data = await getMyOrdersApi(token);
+//       setOrders(data.orders || []);
+//     } catch {
+//       toast.error("Failed to load orders");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleCancel = async (orderId) => {
+//     setCancellingId(orderId);
+//     try {
+//       await cancelOrderApi(orderId, token);
+//       setOrders((prev) =>
+//         prev.map((o) => o._id === orderId ? { ...o, orderStatus: "cancelled" } : o)
+//       );
+//       if (selectedOrder?._id === orderId) {
+//         setSelectedOrder((prev) => ({ ...prev, orderStatus: "cancelled" }));
+//       }
+//       toast.success("Order cancelled");
+//     } catch (err) {
+//       toast.error(err.response?.data?.message || "Failed to cancel order");
+//     } finally {
+//       setCancellingId(null);
+//     }
+//   };
+
+//   const filtered = orders.filter((o) =>
+//     filterStatus === "all" || o.orderStatus === filterStatus
+//   );
+
+//   const SkeletonRow = () => (
+//     <div className="bg-white rounded-2xl p-5 border border-gray-100 space-y-3">
+//       <div className="flex justify-between">
+//         <div className="h-4 w-32 bg-gray-100 rounded-full animate-pulse" />
+//         <div className="h-6 w-20 bg-gray-100 rounded-full animate-pulse" />
+//       </div>
+//       <div className="h-3 w-48 bg-gray-100 rounded-full animate-pulse" />
+//       <div className="h-4 w-24 bg-gray-100 rounded-full animate-pulse" />
+//     </div>
+//   );
+
+//   return (
+//     <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6">
+//       <div className="max-w-4xl mx-auto">
+
+//         {/* Header */}
+//         <div className="mb-8">
+//           <p className="text-xs font-bold text-indigo-500 uppercase tracking-widest mb-1">My Account</p>
+//           <h1 className="text-4xl font-extrabold text-gray-900">My Orders</h1>
+//         </div>
+
+//         {/* Filters */}
+//         <div className="flex flex-wrap items-center gap-3 mb-6">
+//           <div className="flex gap-2 flex-wrap">
+//             {["all", "processing", "confirmed", "shipped", "delivered", "cancelled"].map((s) => (
+//               <button
+//                 key={s}
+//                 onClick={() => setFilterStatus(s)}
+//                 className={`px-3 py-2 rounded-xl text-xs font-semibold capitalize transition-all
+//                   ${filterStatus === s
+//                     ? "bg-gray-900 text-white"
+//                     : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
+//                   }`}
+//               >
+//                 {s}
+//               </button>
+//             ))}
+//           </div>
+//         </div>
+
+//         {/* Loading */}
+//         {loading && (
+//           <div className="space-y-3">
+//             {[...Array(3)].map((_, i) => <SkeletonRow key={i} />)}
+//           </div>
+//         )}
+
+//         {/* Empty */}
+//         {!loading && orders.length === 0 && (
+//           <div className="flex flex-col items-center justify-center py-24 text-center">
+//             <div className="w-20 h-20 rounded-2xl bg-indigo-50 flex items-center justify-center mb-5">
+//               <ShoppingBag size={36} className="text-indigo-400" />
+//             </div>
+//             <h2 className="text-xl font-bold text-gray-700 mb-1">No orders yet</h2>
+//             <p className="text-gray-400 text-sm mb-6">Start shopping to see your orders here.</p>
+//             <Link to="/" className="px-6 py-3 bg-indigo-600 text-white rounded-full text-sm font-semibold hover:bg-indigo-700 transition-all">
+//               Start Shopping
+//             </Link>
+//           </div>
+//         )}
+
+//         {/* Orders list */}
+//         {!loading && filtered.length > 0 && (
+//           <div className="space-y-3">
+//             {filtered.map((order) => {
+//               const sc = statusConfig[order.orderStatus] || statusConfig.processing;
+//               return (
+//                 <div key={order._id}
+//                   className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+//                 >
+//                   <div className="p-5">
+//                     <div className="flex items-start justify-between gap-4 flex-wrap">
+
+//                       {/* Left */}
+//                       <div className="flex-1 min-w-0">
+//                         <div className="flex items-center gap-2 mb-2 flex-wrap">
+//                           <span className="text-xs font-mono text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-lg">
+//                             #{order._id.slice(-8).toUpperCase()}
+//                           </span>
+//                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${sc.bg} ${sc.text}`}>
+//                             <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+//                             {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
+//                           </span>
+//                         </div>
+
+//                         {/* Products */}
+//                         <div className="flex items-center gap-2 mb-3">
+//                           <div className="flex -space-x-2">
+//                             {order.orderItems.slice(0, 3).map((item, i) => (
+//                               <img key={i} src={item.image} alt={item.productTitle}
+//                                 className="w-9 h-9 rounded-lg object-cover border-2 border-white bg-gray-100" />
+//                             ))}
+//                             {order.orderItems.length > 3 && (
+//                               <div className="w-9 h-9 rounded-lg bg-gray-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-gray-500">
+//                                 +{order.orderItems.length - 3}
+//                               </div>
+//                             )}
+//                           </div>
+//                           <span className="text-xs text-gray-400">
+//                             {order.orderItems.length} item{order.orderItems.length !== 1 ? "s" : ""}
+//                           </span>
+//                         </div>
+
+//                         <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap">
+//                           <span>{new Date(order.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+//                           <span className="capitalize">{order.paymentMethod} · {order.paymentStatus}</span>
+//                         </div>
+//                       </div>
+
+//                       {/* Right */}
+//                       <div className="flex flex-col items-end gap-3">
+//                         <span className="text-xl font-black text-gray-800">
+//                           ৳{order.totalPrice?.toLocaleString()}
+//                         </span>
+//                         <div className="flex items-center gap-2">
+//                           {!["shipped", "delivered", "cancelled"].includes(order.orderStatus) && (
+//                             <button
+//                               onClick={() => handleCancel(order._id)}
+//                               disabled={cancellingId === order._id}
+//                               className="text-xs text-red-400 hover:text-red-600 font-semibold transition-colors disabled:opacity-40 flex items-center gap-1"
+//                             >
+//                               {cancellingId === order._id
+//                                 ? <Loader2 size={12} className="animate-spin" />
+//                                 : <X size={12} />
+//                               }
+//                               Cancel
+//                             </button>
+//                           )}
+//                           <button
+//                             onClick={() => setSelectedOrder(order)}
+//                             className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-700 font-semibold transition-colors"
+//                           >
+//                             Details <ChevronRight size={13} />
+//                           </button>
+//                         </div>
+//                       </div>
+
+//                     </div>
+//                   </div>
+//                 </div>
+//               );
+//             })}
+//           </div>
+//         )}
+
+//         {/* No filter results */}
+//         {!loading && orders.length > 0 && filtered.length === 0 && (
+//           <div className="text-center py-16 text-gray-400 text-sm">
+//             No orders match the selected filter.
+//           </div>
+//         )}
+
+//       </div>
+
+//       {/* ── DETAIL MODAL ── */}
+//       {selectedOrder && (
+//         <div
+//           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+//           onClick={() => setSelectedOrder(null)}
+//         >
+//           <div
+//             className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+//             onClick={(e) => e.stopPropagation()}
+//           >
+//             {/* Modal Header */}
+//             <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+//               <div>
+//                 <p className="text-xs text-gray-400 mb-0.5">Order Details</p>
+//                 <h2 className="text-base font-bold text-gray-800">
+//                   #{selectedOrder._id.slice(-8).toUpperCase()}
+//                 </h2>
+//               </div>
+//               <button onClick={() => setSelectedOrder(null)}
+//                 className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
+//                 <X size={15} className="text-gray-500" />
+//               </button>
+//             </div>
+
+//             <div className="p-6 space-y-5">
+
+//               {/* Status */}
+//               {(() => {
+//                 const sc = statusConfig[selectedOrder.orderStatus] || statusConfig.processing;
+//                 return (
+//                   <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${sc.bg} ${sc.text}`}>
+//                     <span className={`w-2 h-2 rounded-full ${sc.dot}`} />
+//                     {selectedOrder.orderStatus.charAt(0).toUpperCase() + selectedOrder.orderStatus.slice(1)}
+//                   </span>
+//                 );
+//               })()}
+
+//               {/* Order Items */}
+//               <div>
+//                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Items</p>
+//                 <div className="space-y-2.5">
+//                   {selectedOrder.orderItems.map((item, i) => (
+//                     <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
+//                       <img src={item.image} alt={item.productTitle}
+//                         className="w-12 h-12 rounded-lg object-cover bg-gray-100 shrink-0" />
+//                       <div className="flex-1 min-w-0">
+//                         <p className="text-sm font-semibold text-gray-700 line-clamp-1">{item.productTitle}</p>
+//                         <p className="text-xs text-gray-400">Qty: {item.quantity} × ৳{item.price?.toLocaleString()}</p>
+//                       </div>
+//                       <span className="text-sm font-bold text-gray-700 shrink-0">৳{item.subTotal?.toLocaleString()}</span>
+//                     </div>
+//                   ))}
+//                 </div>
+//               </div>
+
+//               {/* Pricing */}
+//               <div className="bg-gray-50 rounded-2xl p-4 space-y-2">
+//                 <div className="flex justify-between text-sm text-gray-500">
+//                   <span>Subtotal</span>
+//                   <span>৳{selectedOrder.subTotal?.toLocaleString()}</span>
+//                 </div>
+//                 <div className="flex justify-between text-sm text-gray-500">
+//                   <span>Shipping</span>
+//                   <span>{selectedOrder.shippingCost === 0 ? "Free" : `৳${selectedOrder.shippingCost}`}</span>
+//                 </div>
+//                 <div className="flex justify-between font-bold text-gray-800 pt-2 border-t border-gray-200">
+//                   <span>Total</span>
+//                   <span className="text-indigo-600">৳{selectedOrder.totalPrice?.toLocaleString()}</span>
+//                 </div>
+//               </div>
+
+//               {/* Shipping Address */}
+//               <div>
+//                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Shipping Address</p>
+//                 <div className="bg-gray-50 rounded-2xl p-4 text-sm text-gray-600 space-y-1">
+//                   <p className="font-semibold text-gray-800">
+//                     {selectedOrder.shippingAddress.firstName} {selectedOrder.shippingAddress.lastName}
+//                   </p>
+//                   <p>{selectedOrder.shippingAddress.street1}</p>
+//                   {selectedOrder.shippingAddress.street2 && <p>{selectedOrder.shippingAddress.street2}</p>}
+//                   <p>{selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state} {selectedOrder.shippingAddress.zipCode}</p>
+//                   <p>{selectedOrder.shippingAddress.country}</p>
+//                   <p className="text-indigo-500">{selectedOrder.shippingAddress.phone}</p>
+//                   <p className="text-indigo-500">{selectedOrder.shippingAddress.email}</p>
+//                 </div>
+//               </div>
+
+//               {/* Payment Info */}
+//               <div className="grid grid-cols-2 gap-3">
+//                 {[
+//                   ["Payment Method", selectedOrder.paymentMethod],
+//                   ["Payment Status", selectedOrder.paymentStatus],
+//                   ["Shipping Method", selectedOrder.shippingMethod],
+//                   ["Order Date", new Date(selectedOrder.createdAt).toLocaleDateString("en-GB")],
+//                 ].map(([k, v]) => (
+//                   <div key={k} className="bg-gray-50 rounded-xl px-4 py-3">
+//                     <p className="text-xs text-gray-400 mb-0.5">{k}</p>
+//                     <p className="text-sm font-semibold text-gray-700 capitalize">{v}</p>
+//                   </div>
+//                 ))}
+//               </div>
+
+//               {/* Cancel button in modal */}
+//               {!["shipped", "delivered", "cancelled"].includes(selectedOrder.orderStatus) && (
+//                 <button
+//                   onClick={() => handleCancel(selectedOrder._id)}
+//                   disabled={cancellingId === selectedOrder._id}
+//                   className="w-full py-3 rounded-2xl border-2 border-red-200 text-red-500 text-sm font-bold hover:bg-red-50 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+//                 >
+//                   {cancellingId === selectedOrder._id
+//                     ? <><Loader2 size={15} className="animate-spin" /> Cancelling...</>
+//                     : "Cancel Order"
+//                   }
+//                 </button>
+//               )}
+
+//             </div>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default Orders;
+
+
+
+
+
+
+
+
+
+// import { useState, useEffect } from "react";
+// import { useAuth } from "../../context/AuthContext";
+// import { getMyOrdersApi, cancelOrderApi } from "../../utils/api/orderApi";
+// import { Package, ChevronRight, X, Loader2, ShoppingBag } from "lucide-react";
+// import { Link } from "react-router-dom";
+// import toast from "react-hot-toast";
+
+// const statusConfig = {
+//   processing: { bg: "bg-blue-100",    text: "text-blue-700",    dot: "bg-blue-500"    },
+//   confirmed:  { bg: "bg-indigo-100",  text: "text-indigo-700",  dot: "bg-indigo-500"  },
+//   shipped:    { bg: "bg-violet-100",  text: "text-violet-700",  dot: "bg-violet-500"  },
+//   delivered:  { bg: "bg-emerald-100", text: "text-emerald-700", dot: "bg-emerald-500" },
+//   cancelled:  { bg: "bg-red-100",     text: "text-red-700",     dot: "bg-red-400"     },
+// };
+
+// const Orders = () => {
+//   const { token } = useAuth();
+//   const [orders, setOrders]               = useState([]);
+//   const [loading, setLoading]             = useState(true);
+//   const [selectedOrder, setSelectedOrder] = useState(null);
+//   const [cancellingId, setCancellingId]   = useState(null);
+//   const [filterStatus, setFilterStatus]   = useState("all");
+//   const [search, setSearch]               = useState("");
+
+//   useEffect(() => {
+//     fetchOrders();
+//   }, []);
+
+//   const fetchOrders = async () => {
+//     setLoading(true);
+//     try {
+//       const data = await getMyOrdersApi(token);
+//       setOrders(data.orders || []);
+//     } catch {
+//       toast.error("Failed to load orders");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleCancel = async (orderId) => {
+//     setCancellingId(orderId);
+//     try {
+//       await cancelOrderApi(orderId, token);
+//       setOrders((prev) =>
+//         prev.map((o) => o._id === orderId ? { ...o, orderStatus: "cancelled" } : o)
+//       );
+//       if (selectedOrder?._id === orderId) {
+//         setSelectedOrder((prev) => ({ ...prev, orderStatus: "cancelled" }));
+//       }
+//       toast.success("Order cancelled");
+//     } catch (err) {
+//       toast.error(err.response?.data?.message || "Failed to cancel order");
+//     } finally {
+//       setCancellingId(null);
+//     }
+//   };
+
+//   const filtered = orders.filter((o) => {
+//     const matchStatus = filterStatus === "all" || o.orderStatus === filterStatus;
+//     const matchSearch =
+//       o._id.toLowerCase().includes(search.toLowerCase()) ||
+//       o.shippingAddress?.firstName?.toLowerCase().includes(search.toLowerCase());
+//     return matchStatus && matchSearch;
+//   });
+
+//   const SkeletonRow = () => (
+//     <div className="bg-white rounded-2xl p-5 border border-gray-100 space-y-3">
+//       <div className="flex justify-between">
+//         <div className="h-4 w-32 bg-gray-100 rounded-full animate-pulse" />
+//         <div className="h-6 w-20 bg-gray-100 rounded-full animate-pulse" />
+//       </div>
+//       <div className="h-3 w-48 bg-gray-100 rounded-full animate-pulse" />
+//       <div className="h-4 w-24 bg-gray-100 rounded-full animate-pulse" />
+//     </div>
+//   );
+
+//   return (
+//     <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6">
+//       <div className="max-w-4xl mx-auto">
+
+//         {/* Header */}
+//         <div className="mb-8">
+//           <p className="text-xs font-bold text-indigo-500 uppercase tracking-widest mb-1">My Account</p>
+//           <h1 className="text-4xl font-extrabold text-gray-900">My Orders</h1>
+//         </div>
+
+//         {/* Filters */}
+//         <div className="flex flex-wrap items-center gap-3 mb-6">
+//           <div className="relative flex-1 min-w-48">
+//             <input
+//               type="text"
+//               placeholder="Search by order ID or name..."
+//               value={search}
+//               onChange={(e) => setSearch(e.target.value)}
+//               className="w-full pl-4 pr-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 transition-all"
+//             />
+//           </div>
+//           <div className="flex gap-2 flex-wrap">
+//             {["all", "processing", "confirmed", "shipped", "delivered", "cancelled"].map((s) => (
+//               <button
+//                 key={s}
+//                 onClick={() => setFilterStatus(s)}
+//                 className={`px-3 py-2 rounded-xl text-xs font-semibold capitalize transition-all
+//                   ${filterStatus === s
+//                     ? "bg-gray-900 text-white"
+//                     : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
+//                   }`}
+//               >
+//                 {s}
+//               </button>
+//             ))}
+//           </div>
+//         </div>
+
+//         {/* Loading */}
+//         {loading && (
+//           <div className="space-y-3">
+//             {[...Array(3)].map((_, i) => <SkeletonRow key={i} />)}
+//           </div>
+//         )}
+
+//         {/* Empty */}
+//         {!loading && orders.length === 0 && (
+//           <div className="flex flex-col items-center justify-center py-24 text-center">
+//             <div className="w-20 h-20 rounded-2xl bg-indigo-50 flex items-center justify-center mb-5">
+//               <ShoppingBag size={36} className="text-indigo-400" />
+//             </div>
+//             <h2 className="text-xl font-bold text-gray-700 mb-1">No orders yet</h2>
+//             <p className="text-gray-400 text-sm mb-6">Start shopping to see your orders here.</p>
+//             <Link to="/" className="px-6 py-3 bg-indigo-600 text-white rounded-full text-sm font-semibold hover:bg-indigo-700 transition-all">
+//               Start Shopping
+//             </Link>
+//           </div>
+//         )}
+
+//         {/* Orders list */}
+//         {!loading && filtered.length > 0 && (
+//           <div className="space-y-3">
+//             {filtered.map((order) => {
+//               const sc = statusConfig[order.orderStatus] || statusConfig.processing;
+//               return (
+//                 <div key={order._id}
+//                   className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+//                 >
+//                   <div className="p-5">
+//                     <div className="flex items-start justify-between gap-4 flex-wrap">
+
+//                       {/* Left */}
+//                       <div className="flex-1 min-w-0">
+//                         <div className="flex items-center gap-2 mb-2 flex-wrap">
+//                           <span className="text-xs font-mono text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-lg">
+//                             #{order._id.slice(-8).toUpperCase()}
+//                           </span>
+//                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${sc.bg} ${sc.text}`}>
+//                             <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+//                             {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
+//                           </span>
+//                         </div>
+
+//                         {/* Products */}
+//                         <div className="flex items-center gap-2 mb-3">
+//                           <div className="flex -space-x-2">
+//                             {order.orderItems.slice(0, 3).map((item, i) => (
+//                               <img key={i} src={item.image} alt={item.productTitle}
+//                                 className="w-9 h-9 rounded-lg object-cover border-2 border-white bg-gray-100" />
+//                             ))}
+//                             {order.orderItems.length > 3 && (
+//                               <div className="w-9 h-9 rounded-lg bg-gray-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-gray-500">
+//                                 +{order.orderItems.length - 3}
+//                               </div>
+//                             )}
+//                           </div>
+//                           <span className="text-xs text-gray-400">
+//                             {order.orderItems.length} item{order.orderItems.length !== 1 ? "s" : ""}
+//                           </span>
+//                         </div>
+
+//                         <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap">
+//                           <span>{new Date(order.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+//                           <span className="capitalize">{order.paymentMethod} · {order.paymentStatus}</span>
+//                         </div>
+//                       </div>
+
+//                       {/* Right */}
+//                       <div className="flex flex-col items-end gap-3">
+//                         <span className="text-xl font-black text-gray-800">
+//                           ৳{order.totalPrice?.toLocaleString()}
+//                         </span>
+//                         <div className="flex items-center gap-2">
+//                           {!["shipped", "delivered", "cancelled"].includes(order.orderStatus) && (
+//                             <button
+//                               onClick={() => handleCancel(order._id)}
+//                               disabled={cancellingId === order._id}
+//                               className="text-xs text-red-400 hover:text-red-600 font-semibold transition-colors disabled:opacity-40 flex items-center gap-1"
+//                             >
+//                               {cancellingId === order._id
+//                                 ? <Loader2 size={12} className="animate-spin" />
+//                                 : <X size={12} />
+//                               }
+//                               Cancel
+//                             </button>
+//                           )}
+//                           <button
+//                             onClick={() => setSelectedOrder(order)}
+//                             className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-700 font-semibold transition-colors"
+//                           >
+//                             Details <ChevronRight size={13} />
+//                           </button>
+//                         </div>
+//                       </div>
+
+//                     </div>
+//                   </div>
+//                 </div>
+//               );
+//             })}
+//           </div>
+//         )}
+
+//         {/* No filter results */}
+//         {!loading && orders.length > 0 && filtered.length === 0 && (
+//           <div className="text-center py-16 text-gray-400 text-sm">
+//             No orders match your search.
+//           </div>
+//         )}
+
+//       </div>
+
+//       {/* ── DETAIL MODAL ── */}
+//       {selectedOrder && (
+//         <div
+//           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+//           onClick={() => setSelectedOrder(null)}
+//         >
+//           <div
+//             className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+//             onClick={(e) => e.stopPropagation()}
+//           >
+//             {/* Modal Header */}
+//             <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+//               <div>
+//                 <p className="text-xs text-gray-400 mb-0.5">Order Details</p>
+//                 <h2 className="text-base font-bold text-gray-800">
+//                   #{selectedOrder._id.slice(-8).toUpperCase()}
+//                 </h2>
+//               </div>
+//               <button onClick={() => setSelectedOrder(null)}
+//                 className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
+//                 <X size={15} className="text-gray-500" />
+//               </button>
+//             </div>
+
+//             <div className="p-6 space-y-5">
+
+//               {/* Status */}
+//               {(() => {
+//                 const sc = statusConfig[selectedOrder.orderStatus] || statusConfig.processing;
+//                 return (
+//                   <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${sc.bg} ${sc.text}`}>
+//                     <span className={`w-2 h-2 rounded-full ${sc.dot}`} />
+//                     {selectedOrder.orderStatus.charAt(0).toUpperCase() + selectedOrder.orderStatus.slice(1)}
+//                   </span>
+//                 );
+//               })()}
+
+//               {/* Order Items */}
+//               <div>
+//                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Items</p>
+//                 <div className="space-y-2.5">
+//                   {selectedOrder.orderItems.map((item, i) => (
+//                     <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
+//                       <img src={item.image} alt={item.productTitle}
+//                         className="w-12 h-12 rounded-lg object-cover bg-gray-100 shrink-0" />
+//                       <div className="flex-1 min-w-0">
+//                         <p className="text-sm font-semibold text-gray-700 line-clamp-1">{item.productTitle}</p>
+//                         <p className="text-xs text-gray-400">Qty: {item.quantity} × ৳{item.price?.toLocaleString()}</p>
+//                       </div>
+//                       <span className="text-sm font-bold text-gray-700 shrink-0">৳{item.subTotal?.toLocaleString()}</span>
+//                     </div>
+//                   ))}
+//                 </div>
+//               </div>
+
+//               {/* Pricing */}
+//               <div className="bg-gray-50 rounded-2xl p-4 space-y-2">
+//                 <div className="flex justify-between text-sm text-gray-500">
+//                   <span>Subtotal</span>
+//                   <span>৳{selectedOrder.subTotal?.toLocaleString()}</span>
+//                 </div>
+//                 <div className="flex justify-between text-sm text-gray-500">
+//                   <span>Shipping</span>
+//                   <span>{selectedOrder.shippingCost === 0 ? "Free" : `৳${selectedOrder.shippingCost}`}</span>
+//                 </div>
+//                 <div className="flex justify-between font-bold text-gray-800 pt-2 border-t border-gray-200">
+//                   <span>Total</span>
+//                   <span className="text-indigo-600">৳{selectedOrder.totalPrice?.toLocaleString()}</span>
+//                 </div>
+//               </div>
+
+//               {/* Shipping Address */}
+//               <div>
+//                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Shipping Address</p>
+//                 <div className="bg-gray-50 rounded-2xl p-4 text-sm text-gray-600 space-y-1">
+//                   <p className="font-semibold text-gray-800">
+//                     {selectedOrder.shippingAddress.firstName} {selectedOrder.shippingAddress.lastName}
+//                   </p>
+//                   <p>{selectedOrder.shippingAddress.street1}</p>
+//                   {selectedOrder.shippingAddress.street2 && <p>{selectedOrder.shippingAddress.street2}</p>}
+//                   <p>{selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state} {selectedOrder.shippingAddress.zipCode}</p>
+//                   <p>{selectedOrder.shippingAddress.country}</p>
+//                   <p className="text-indigo-500">{selectedOrder.shippingAddress.phone}</p>
+//                   <p className="text-indigo-500">{selectedOrder.shippingAddress.email}</p>
+//                 </div>
+//               </div>
+
+//               {/* Payment Info */}
+//               <div className="grid grid-cols-2 gap-3">
+//                 {[
+//                   ["Payment Method", selectedOrder.paymentMethod],
+//                   ["Payment Status", selectedOrder.paymentStatus],
+//                   ["Shipping Method", selectedOrder.shippingMethod],
+//                   ["Order Date", new Date(selectedOrder.createdAt).toLocaleDateString("en-GB")],
+//                 ].map(([k, v]) => (
+//                   <div key={k} className="bg-gray-50 rounded-xl px-4 py-3">
+//                     <p className="text-xs text-gray-400 mb-0.5">{k}</p>
+//                     <p className="text-sm font-semibold text-gray-700 capitalize">{v}</p>
+//                   </div>
+//                 ))}
+//               </div>
+
+//               {/* Cancel button in modal */}
+//               {!["shipped", "delivered", "cancelled"].includes(selectedOrder.orderStatus) && (
+//                 <button
+//                   onClick={() => handleCancel(selectedOrder._id)}
+//                   disabled={cancellingId === selectedOrder._id}
+//                   className="w-full py-3 rounded-2xl border-2 border-red-200 text-red-500 text-sm font-bold hover:bg-red-50 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+//                 >
+//                   {cancellingId === selectedOrder._id
+//                     ? <><Loader2 size={15} className="animate-spin" /> Cancelling...</>
+//                     : "Cancel Order"
+//                   }
+//                 </button>
+//               )}
+
+//             </div>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default Orders;
