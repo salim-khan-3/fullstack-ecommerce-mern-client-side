@@ -27,6 +27,7 @@ const AppLayout = () => {
       {isShowHeaderFooter && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
+         <Route path="/listing"       element={<Listing />} />
         <Route path="/category/:id" element={<Listing />} />
         <Route path="/product/:id" element={<ProductDetailsPage />} />
         <Route path="/cart" element={<Cart />} />
