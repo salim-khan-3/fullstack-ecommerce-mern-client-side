@@ -16,6 +16,7 @@ import { CartProvider } from "./context/CartContext";
 import MyList from "./pages/MyList/MyList";
 import Checkout from "./pages/CheckOutPage/CheckOut";
 import Orders from "./pages/Orders/Orders";
+import MyAccount from "./pages/Myaccount/Myaccount";
 
 export { MyContext };
 
@@ -36,6 +37,7 @@ const AppLayout = () => {
         <Route path="/my-list" element={<MyList />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/my-account" element={<MyAccount />} />
       </Routes>
       {isShowHeaderFooter && <Footer />}
     </>
