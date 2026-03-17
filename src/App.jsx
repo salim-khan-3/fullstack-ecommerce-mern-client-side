@@ -18,6 +18,8 @@ import Checkout from "./pages/CheckOutPage/CheckOut";
 import Orders from "./pages/Orders/Orders";
 import MyAccount from "./pages/Myaccount/Myaccount";
 import OtpVerify from "./pages/OtpVerify/OtpVerify";
+import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
+import ResetPassword from "./pages/ForgotPassword/ResetPassword";
 
 export { MyContext };
 
@@ -29,7 +31,7 @@ const AppLayout = () => {
       {isShowHeaderFooter && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
-         <Route path="/listing"       element={<Listing />} />
+        <Route path="/listing" element={<Listing />} />
         <Route path="/category/:id" element={<Listing />} />
         <Route path="/product/:id" element={<ProductDetailsPage />} />
         <Route path="/cart" element={<Cart />} />
@@ -40,6 +42,8 @@ const AppLayout = () => {
         <Route path="/orders" element={<Orders />} />
         <Route path="/my-account" element={<MyAccount />} />
         <Route path="/otp-verify" element={<OtpVerify />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
       {isShowHeaderFooter && <Footer />}
     </>

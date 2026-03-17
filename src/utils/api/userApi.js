@@ -19,3 +19,19 @@ export const resendOtp = async (email) => {
   const res = await axiosInstance.post(`/user/resend-otp`, { email });
   return res.data;
 };
+
+
+export const forgotPassword = async (email) => {
+  const res = await axiosInstance.post(`/user/forgot-password`, { email });
+  return res.data;
+};
+
+export const verifyResetOtp = async (email, otp) => {
+  const res = await axiosInstance.post(`/user/verify-reset-otp`, { email, otp });
+  return res.data;
+};
+
+export const resetPassword = async (email, otp, newPassword) => {
+  const res = await axiosInstance.post(`/user/reset-password`, { email, otp, newPassword });
+  return res.data;
+};
