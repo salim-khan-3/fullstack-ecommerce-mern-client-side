@@ -20,6 +20,7 @@ import MyAccount from "./pages/Myaccount/Myaccount";
 import OtpVerify from "./pages/OtpVerify/OtpVerify";
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/ForgotPassword/ResetPassword";
+import OrderSuccess from "./pages/Ordersuccess/Ordersuccess";
 
 export { MyContext };
 
@@ -44,6 +45,7 @@ const AppLayout = () => {
         <Route path="/otp-verify" element={<OtpVerify />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/order-success" element={<OrderSuccess />} />
       </Routes>
       {isShowHeaderFooter && <Footer />}
     </>

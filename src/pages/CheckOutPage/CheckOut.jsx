@@ -8,28 +8,28 @@ import { placeOrderApi, initPaymentApi } from "../../utils/api/orderApi";
 import toast from "react-hot-toast";
 
 const Checkout = () => {
-  const { cartItems, cartTotal, clearCart } = useCart();
+  const { cartItems, cartTotal, resetCart } = useCart();
   const { user, token } = useAuth();
   const navigate = useNavigate();
 
   const [shipping, setShipping] = useState("flat");
-  const [payment, setPayment] = useState("cod");
-  const [focused, setFocused] = useState("");
-  const [placing, setPlacing] = useState(false);
+  const [payment, setPayment]   = useState("cod");
+  const [focused, setFocused]   = useState("");
+  const [placing, setPlacing]   = useState(false);
 
   const [form, setForm] = useState({
-    firstName:  user?.name?.split(" ")[0] || "",
-    lastName:   user?.name?.split(" ")[1] || "",
-    company:    "",
-    country:    "Bangladesh",
-    street1:    "",
-    street2:    "",
-    city:       "",
-    state:      "",
-    zipCode:    "",
-    phone:      "",
-    email:      user?.email || "",
-    notes:      "",
+    firstName: user?.name?.split(" ")[0] || "",
+    lastName:  user?.name?.split(" ")[1] || "",
+    company:   "",
+    country:   "Bangladesh",
+    street1:   "",
+    street2:   "",
+    city:      "",
+    state:     "",
+    zipCode:   "",
+    phone:     "",
+    email:     user?.email || "",
+    notes:     "",
   });
 
   const shippingCost = shipping === "flat" ? 5 : 0;
@@ -40,7 +40,6 @@ const Checkout = () => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // Validation
   const validate = () => {
     const required = ["firstName", "lastName", "country", "street1", "city", "state", "zipCode", "phone", "email"];
     for (const field of required) {
@@ -86,16 +85,18 @@ const Checkout = () => {
 
       // 3 — Payment flow
       if (payment === "sslcommerz") {
+        // SSLCommerz — cart clear করো না, payment success এ করবে
         const payRes = await initPaymentApi(orderId, token);
         if (payRes.success && payRes.gatewayUrl) {
-          window.location.href = payRes.gatewayUrl; // SSLCommerz page এ redirect
+          window.location.href = payRes.gatewayUrl;
         } else {
           toast.error("Payment init failed");
         }
       } else {
-        // COD or Bank — directly go to success page
+        // COD বা Bank — cart clear করো এবং success page এ redirect
+        resetCart();
         toast.success("Order placed successfully!");
-        navigate(`/payment/success?orderId=${orderId}`);
+        navigate(`/order-success?orderId=${orderId}`);
       }
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to place order");
@@ -332,9 +333,9 @@ const Checkout = () => {
 
             <div className="px-6 py-4 space-y-3">
               {[
-                { id: "cod",        label: "Cash on Delivery",     desc: "Pay with cash when your order arrives at your door." },
-                { id: "bank",       label: "Direct Bank Transfer",  desc: "Make your payment directly into our bank account. Use your Order ID as reference." },
-                { id: "sslcommerz", label: "bKash / Nagad / Card",  desc: "Pay securely via bKash, Nagad, Rocket, or any bank card through SSLCommerz." },
+                { id: "cod",        label: "Cash on Delivery",    desc: "Pay with cash when your order arrives at your door." },
+                { id: "bank",       label: "Direct Bank Transfer", desc: "Make your payment directly into our bank account. Use your Order ID as reference." },
+                { id: "sslcommerz", label: "bKash / Nagad / Card", desc: "Pay securely via bKash, Nagad, Rocket, or any bank card through SSLCommerz." },
               ].map((opt) => (
                 <div key={opt.id} onClick={() => setPayment(opt.id)}
                   className={`p-4 rounded-2xl border cursor-pointer transition-all duration-200
@@ -374,7 +375,7 @@ const Checkout = () => {
               </div>
             </div>
 
-            {/* Place Order */}
+            {/* Place Order Button */}
             <div className="px-6 pb-6">
               <motion.button
                 whileHover={{ scale: placing ? 1 : 1.015 }}
@@ -403,10 +404,6 @@ const Checkout = () => {
 };
 
 export default Checkout;
-
-
-
-
 
 
 
