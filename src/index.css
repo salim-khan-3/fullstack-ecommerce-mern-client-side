@@ -32,3 +32,13 @@ body{
     background: #999;
   }
 }
+/* hide scrollbar for chrome, safari and opera */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}

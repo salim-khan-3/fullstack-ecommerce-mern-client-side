@@ -227,7 +227,7 @@ const MiddleHeader = () => {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto flex flex-col">
+        <div className="flex-1 overflow-y-auto flex flex-col no-scrollbar">
 
           {/* Mobile Search */}
           <div className="px-4 pt-4 pb-2">
