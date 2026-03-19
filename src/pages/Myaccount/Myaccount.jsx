@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import imageCompression from 'browser-image-compression';
 import {
   User, Mail, Phone, Lock, Eye, EyeOff,
   Package, Heart, MapPin, ChevronRight,
@@ -118,29 +119,35 @@ const MyAccount = () => {
     }
   };
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append("image", file);
-    setImageUploading(true);
-    try {
-      const userId = user?.id || user?._id;
-      const res = await axiosInstance.put(`/user/${userId}/image`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      updateUser(res.data.user);
-      toast.success("Profile picture updated");
-    } catch {
-      toast.error("Failed to upload image");
-    } finally {
-      setImageUploading(false);
-    }
-  };
+const handleImageUpload = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
+  setImageUploading(true);
+  try {
+    // Compress করো
+    const compressed = await imageCompression(file, {
+  maxSizeMB: 3,           // 3MB — quality অনেক ভালো থাকবে
+  maxWidthOrHeight: 1200, // resolution ও ভালো থাকবে
+  useWebWorker: true,
+  initialQuality: 0.9,    // 90% quality রাখো
+});
+
+    const formData = new FormData();
+    formData.append("image", compressed);
+
+    const userId = user?.id || user?._id;
+    const res = await axiosInstance.put(`/user/${userId}/image`, formData, {
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+    });
+    updateUser(res.data.user);
+    toast.success("Profile picture updated");
+  } catch {
+    toast.error("Failed to upload image");
+  } finally {
+    setImageUploading(false);
+  }
+};
   const avatarLetter = user?.name?.charAt(0).toUpperCase() || "U";
 
   const statusColors = {
