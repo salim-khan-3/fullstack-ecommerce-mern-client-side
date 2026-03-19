@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { Star, Send, ThumbsUp, MessageCircle, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
+// ==========================
+// Star Rating Component
+// ==========================
 const StarRating = ({ rating, size = 16, interactive = false, onRate }) => {
   const [hovered, setHovered] = useState(0);
   return (
@@ -23,7 +27,9 @@ const StarRating = ({ rating, size = 16, interactive = false, onRate }) => {
   );
 };
 
-// rating percentage calculate
+// ==========================
+// Rating Stats Calculator
+// ==========================
 const calcRatingStats = (reviews) => {
   const total = reviews.length;
   if (total === 0) return { average: 0, bars: [] };
@@ -42,19 +48,19 @@ const calcRatingStats = (reviews) => {
   return { average: avg, bars };
 };
 
+// ==========================
+// Main ReviewSection
+// ==========================
 const ReviewSection = ({ reviews = [], reviewsLoading, onAddReview, isLoggedIn, currentUser }) => {
-  const [userRating, setUserRating] = useState(0);
-  const [reviewText, setReviewText] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [userRating, setUserRating]   = useState(0);
+  const [reviewText, setReviewText]   = useState("");
+  const [submitting, setSubmitting]   = useState(false);
 
+  const navigate = useNavigate();
   const { average, bars } = calcRatingStats(reviews);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isLoggedIn) {
-      toast.error("Please login to submit a review");
-      return;
-    }
     if (!reviewText.trim()) {
       toast.error("Please write a review");
       return;
@@ -76,175 +82,207 @@ const ReviewSection = ({ reviews = [], reviewsLoading, onAddReview, isLoggedIn, 
   };
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=Playfair+Display:wght@500;600&display=swap');
-        .rv-root { font-family: 'DM Sans', sans-serif; }
-        .rv-heading { font-family: 'Playfair Display', serif; }
-        .rv-card { background: #fff; border-radius: 20px; transition: box-shadow 0.25s, transform 0.25s; }
-        .rv-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.08); transform: translateY(-2px); }
-        .rv-bar-track { background: #f3f4f6; border-radius: 99px; overflow: hidden; height: 8px; }
-        .rv-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #f59e0b, #ef4444); transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
-        .rv-submit-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); border-radius: 14px; color: white; font-weight: 600; font-size: 14px; padding: 12px 28px; display: flex; align-items: center; gap: 8px; transition: all 0.25s; border: none; cursor: pointer; letter-spacing: 0.3px; }
-        .rv-submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(102,126,234,0.45); }
-        .rv-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        .rv-textarea { width: 100%; border: 1.5px solid #e5e7eb; border-radius: 14px; padding: 14px 16px; font-size: 14px; font-family: 'DM Sans', sans-serif; resize: none; outline: none; transition: border-color 0.2s, box-shadow 0.2s; background: #fafafa; color: #374151; height: 120px; }
-        .rv-textarea:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.12); background: #fff; }
-        .rv-input { border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 11px 16px; font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; background: #fafafa; color: #374151; transition: border-color 0.2s, box-shadow 0.2s; width: 100%; }
-        .rv-input:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.12); background: #fff; }
-        .rv-avatar { width: 48px; height: 48px; border-radius: 14px; object-fit: cover; flex-shrink: 0; }
-        .rv-avatar-letter { width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0; background: linear-gradient(135deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:18px; }
-        .rv-helpful-btn { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #9ca3af; background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 8px; padding: 5px 10px; cursor: pointer; transition: all 0.15s; }
-        .rv-helpful-btn:hover { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
-        .rv-score-badge { background: linear-gradient(135deg, #f59e0b, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: 'Playfair Display', serif; font-size: 52px; font-weight: 600; line-height: 1; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        .rv-fadein { animation: fadeUp 0.45s ease both; }
-        .rv-fadein-1 { animation-delay: 0.05s; }
-        .rv-fadein-2 { animation-delay: 0.12s; }
-        .rv-fadein-3 { animation-delay: 0.2s; }
-      `}</style>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
 
-      <div className="rv-root max-w-6xl mx-auto px-4 sm:px-6 py-12">
+      {/* Section Header */}
+      <div className="mb-10">
+        <h2 className="text-3xl font-bold text-gray-900 mb-1">Reviews & Ratings</h2>
+        <p className="text-gray-400 text-sm">What our customers are saying</p>
+      </div>
 
-        <div className="rv-fadein mb-10">
-          <h2 className="rv-heading text-3xl text-gray-900 mb-1">Reviews & Ratings</h2>
-          <p className="text-gray-400 text-sm">What our customers are saying</p>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+        {/* ── LEFT: Reviews + Form ── */}
+        <div className="lg:col-span-2 space-y-5">
 
-          {/* ── LEFT: Reviews + Form ── */}
-          <div className="lg:col-span-2 space-y-5">
+          {/* Loading */}
+          {reviewsLoading && (
+            <div className="flex items-center justify-center py-12 text-gray-400 gap-2">
+              <Loader2 size={20} className="animate-spin" />
+              <span className="text-sm">Loading reviews...</span>
+            </div>
+          )}
 
-            {/* Loading */}
-            {reviewsLoading && (
-              <div className="flex items-center justify-center py-12 text-gray-400 gap-2">
-                <Loader2 size={20} className="animate-spin" />
-                <span className="text-sm">Loading reviews...</span>
-              </div>
-            )}
+          {/* Empty */}
+          {!reviewsLoading && reviews.length === 0 && (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 text-center">
+              <Star size={36} className="mx-auto text-gray-200 mb-3" />
+              <p className="text-gray-400 text-sm">No reviews yet. Be the first to review!</p>
+            </div>
+          )}
 
-            {/* Empty */}
-            {!reviewsLoading && reviews.length === 0 && (
-              <div className="rv-card p-10 text-center" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.05)" }}>
-                <Star size={36} className="mx-auto text-gray-200 mb-3" />
-                <p className="text-gray-400 text-sm">No reviews yet. Be the first to review!</p>
-              </div>
-            )}
-
-            {/* Review Cards */}
-            {!reviewsLoading && reviews.map((r, i) => (
-              <div key={r._id || r.id} className={`rv-card rv-fadein rv-fadein-${Math.min(i + 1, 3)} p-5 sm:p-6`}
-                style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.05)" }}>
-                <div className="flex gap-4">
-                  {/* Avatar — letter fallback */}
-                  <div className="rv-avatar-letter shrink-0">
-                    {r.customerName?.charAt(0).toUpperCase() || "U"}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 flex-wrap mb-2">
-                      <div>
-                        <p className="font-semibold text-gray-800 text-[15px]">{r.customerName}</p>
-                        <p className="text-gray-400 text-xs mt-0.5">
-                          {r.createdAt ? new Date(r.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : ""}
-                        </p>
-                      </div>
-                      <StarRating rating={r.customerRating} size={15} />
-                    </div>
-                    <p className="text-gray-600 text-sm leading-relaxed">{r.review}</p>
-                    <div className="mt-4 flex items-center gap-2">
-                      <button className="rv-helpful-btn"><ThumbsUp size={12} /> Helpful</button>
-                      <button className="rv-helpful-btn"><MessageCircle size={12} /> Reply</button>
-                    </div>
-                  </div>
+          {/* Review Cards */}
+          {!reviewsLoading && reviews.map((r) => (
+            <div
+              key={r._id || r.id}
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-5 sm:p-6"
+            >
+              <div className="flex gap-4">
+                {/* Avatar */}
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-500
+                                flex items-center justify-center text-white font-bold text-lg shrink-0">
+                  {r.customerName?.charAt(0).toUpperCase() || "U"}
                 </div>
-              </div>
-            ))}
 
-            {/* Add Review Form */}
-            <div className="rv-fadein rv-fadein-3 rv-card p-6 sm:p-7"
-              style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.05)" }}>
-              <h3 className="rv-heading text-xl text-gray-800 mb-5">Write a Review</h3>
-
-              {!isLoggedIn ? (
-                <p className="text-sm text-gray-400 py-4 text-center">
-                  Please <span className="text-blue-500 font-semibold cursor-pointer hover:underline">login</span> to write a review.
-                </p>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <textarea
-                    className="rv-textarea"
-                    placeholder="Share your experience with this product..."
-                    value={reviewText}
-                    onChange={(e) => setReviewText(e.target.value)}
-                  />
-                  <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                    {/* logged in user name — read only */}
-                    <input
-                      type="text"
-                      className="rv-input bg-gray-100 text-gray-500 cursor-not-allowed"
-                      value={currentUser?.name || ""}
-                      readOnly
-                    />
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-sm text-gray-500 whitespace-nowrap">Your rating:</span>
-                      <StarRating rating={userRating} size={22} interactive onRate={setUserRating} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 flex-wrap mb-2">
+                    <div>
+                      <p className="font-semibold text-gray-800 text-[15px]">{r.customerName}</p>
+                      <p className="text-gray-400 text-xs mt-0.5">
+                        {r.createdAt
+                          ? new Date(r.createdAt).toLocaleDateString("en-US", {
+                              year: "numeric", month: "long", day: "numeric",
+                            })
+                          : ""}
+                      </p>
                     </div>
+                    <StarRating rating={r.customerRating} size={15} />
                   </div>
-                  <div className="flex justify-end pt-1">
-                    <button type="submit" className="rv-submit-btn" disabled={submitting}>
-                      {submitting ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
-                      {submitting ? "Submitting..." : "Submit Review"}
+
+                  <p className="text-gray-600 text-sm leading-relaxed">{r.review}</p>
+
+                  <div className="mt-4 flex items-center gap-2">
+                    <button className="flex items-center gap-1.5 text-xs text-gray-400
+                                       bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5
+                                       hover:bg-green-50 hover:text-green-600 hover:border-green-200
+                                       transition-all duration-150">
+                      <ThumbsUp size={12} /> Helpful
+                    </button>
+                    <button className="flex items-center gap-1.5 text-xs text-gray-400
+                                       bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5
+                                       hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200
+                                       transition-all duration-150">
+                      <MessageCircle size={12} /> Reply
                     </button>
                   </div>
-                </form>
-              )}
-            </div>
-          </div>
-
-          {/* ── RIGHT: Rating Summary ── */}
-          <div className="rv-fadein rv-fadein-2">
-            <div className="rv-card p-6 sticky top-24"
-              style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.05)" }}>
-
-              <h3 className="rv-heading text-xl text-gray-800 mb-4">Customer Reviews</h3>
-
-              <div className="flex items-end gap-3 mb-5 pb-5" style={{ borderBottom: "1px solid #f3f4f6" }}>
-                <span className="rv-score-badge">{average || "0.0"}</span>
-                <div className="mb-1">
-                  <StarRating rating={Math.round(average)} size={16} />
-                  <p className="text-xs text-gray-400 mt-1">Based on {reviews.length} review{reviews.length !== 1 ? "s" : ""}</p>
                 </div>
               </div>
+            </div>
+          ))}
 
-              <div className="space-y-3">
-                {bars.map((item) => (
-                  <div key={item.stars} className="flex items-center gap-3">
-                    <span className="text-xs text-gray-500 w-10 shrink-0 font-medium">{item.stars} star</span>
-                    <div className="rv-bar-track flex-1">
-                      <div className="rv-bar-fill" style={{ width: `${item.percentage}%` }} />
-                    </div>
-                    <span className="text-xs text-gray-400 w-6 text-right shrink-0">{item.count}</span>
-                  </div>
-                ))}
+          {/* ── Add Review Form ── */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-7">
+            <h3 className="text-xl font-bold text-gray-800 mb-5">Write a Review</h3>
+
+            {!isLoggedIn ? (
+              // Login না থাকলে redirect করো
+              <div className="py-6 text-center">
+                <p className="text-sm text-gray-400 mb-3">You need to be logged in to write a review.</p>
+                <button
+                  onClick={() => navigate("/login")}
+                  className="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600
+                             text-white text-sm font-semibold rounded-xl
+                             transition-all duration-200 hover:scale-[1.02] active:scale-95"
+                >
+                  Login to Write a Review
+                </button>
               </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Review Textarea */}
+                <textarea
+                  rows={5}
+                  placeholder="Share your experience with this product..."
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50
+                             text-sm text-gray-700 placeholder-gray-400 resize-none
+                             focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 focus:bg-white
+                             transition-all duration-200"
+                />
 
-              <div className="mt-6 pt-5" style={{ borderTop: "1px solid #f3f4f6" }}>
-                <p className="text-xs text-gray-400 text-center leading-relaxed">
-                  Purchased this product? Share your review below!
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                  {/* Read-only name */}
+                  <input
+                    type="text"
+                    value={currentUser?.name || ""}
+                    readOnly
+                    className="w-full sm:flex-1 px-4 py-3 rounded-xl border border-gray-200
+                               bg-gray-100 text-gray-500 text-sm cursor-not-allowed"
+                  />
+
+                  {/* Star Rating */}
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-sm text-gray-500 whitespace-nowrap">Your rating:</span>
+                    <StarRating rating={userRating} size={22} interactive onRate={setUserRating} />
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl
+                               bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500
+                               text-white text-sm font-semibold
+                               shadow-lg shadow-indigo-200
+                               hover:shadow-xl hover:shadow-indigo-300
+                               hover:-translate-y-0.5 active:scale-95
+                               disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none
+                               transition-all duration-200"
+                  >
+                    {submitting
+                      ? <><Loader2 size={15} className="animate-spin" /> Submitting...</>
+                      : <><Send size={15} /> Submit Review</>
+                    }
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+
+        {/* ── RIGHT: Rating Summary ── */}
+        <div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sticky top-24">
+
+            <h3 className="text-xl font-bold text-gray-800 mb-5">Customer Reviews</h3>
+
+            {/* Average Score */}
+            <div className="flex items-end gap-3 mb-5 pb-5 border-b border-gray-100">
+              <span className="text-5xl font-black bg-gradient-to-r from-amber-400 to-red-500
+                               bg-clip-text text-transparent leading-none">
+                {average || "0.0"}
+              </span>
+              <div className="mb-1">
+                <StarRating rating={Math.round(average)} size={16} />
+                <p className="text-xs text-gray-400 mt-1">
+                  Based on {reviews.length} review{reviews.length !== 1 ? "s" : ""}
                 </p>
               </div>
             </div>
-          </div>
 
+            {/* Rating Bars */}
+            <div className="space-y-3">
+              {bars.map((item) => (
+                <div key={item.stars} className="flex items-center gap-3">
+                  <span className="text-xs text-gray-500 w-10 shrink-0 font-medium">{item.stars} star</span>
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-amber-400 to-red-400 rounded-full transition-all duration-500"
+                      style={{ width: `${item.percentage}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-gray-400 w-5 text-right shrink-0">{item.count}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 pt-5 border-t border-gray-100">
+              <p className="text-xs text-gray-400 text-center leading-relaxed">
+                Purchased this product? Share your review below!
+              </p>
+            </div>
+          </div>
         </div>
+
       </div>
-    </>
+    </div>
   );
 };
 
 export default ReviewSection;
-
 
 
 
