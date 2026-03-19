@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Heart, Minus, Plus, X, ShoppingCart, ArrowLeftRight, Share2, Check } from "lucide-react";
+import {
+  Heart,
+  Minus,
+  Plus,
+  X,
+  ShoppingCart,
+  ArrowLeftRight,
+  Share2,
+  Check,
+} from "lucide-react";
 import { FaStar, FaRegStar } from "react-icons/fa";
 import ProductImageZoom from "../../../Components/Shared/ProductImageZoom/ProductImageZoom";
 import { useAuth } from "../../../context/AuthContext";
@@ -10,14 +19,15 @@ import toast from "react-hot-toast";
 
 const ProductQuickView = ({ product, onClose }) => {
   const [selectedImg, setSelectedImg] = useState(product?.images?.[0] || null);
-  const [quantity, setQuantity]       = useState(1);
-  const [visible, setVisible]         = useState(false);
-  const [adding, setAdding]           = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [visible, setVisible] = useState(false);
+  const [adding, setAdding] = useState(false);
   const [wishLoading, setWishLoading] = useState(false);
 
-  const { isLoggedIn, token }                               = useAuth();
-  const { addToCart, isInCart }                             = useCart();
-  const { addToMyList, removeFromMyList, isInMyList, getMyListItem } = useContext(StoreContext);
+  const { isLoggedIn, token } = useAuth();
+  const { addToCart, isInCart } = useCart();
+  const { addToMyList, removeFromMyList, isInMyList, getMyListItem } =
+    useContext(StoreContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,22 +41,30 @@ const ProductQuickView = ({ product, onClose }) => {
 
   if (!product) return null;
 
-  const images     = product.images?.length > 0 ? product.images : [];
-  const realPrice  = Number(product.price) || 0;
-  const oldPrice   = product.oldPrice ? Number(product.oldPrice) : Math.round(realPrice / 0.88);
-  const discount   = oldPrice > realPrice ? Math.round(((oldPrice - realPrice) / oldPrice) * 100) : 0;
-  const inStock    = product.countInStock > 0;
-  const rating     = Math.min(5, Math.round(product.rating || 0));
+  const images = product.images?.length > 0 ? product.images : [];
+  const realPrice = Number(product.price) || 0;
+  const oldPrice = product.oldPrice
+    ? Number(product.oldPrice)
+    : Math.round(realPrice / 0.88);
+  const discount =
+    oldPrice > realPrice
+      ? Math.round(((oldPrice - realPrice) / oldPrice) * 100)
+      : 0;
+  const inStock = product.countInStock > 0;
+  const rating = Math.min(5, Math.round(product.rating || 0));
   const categoryName = product.category?.name || product.category || "General";
-  const brand      = product.brand || "—";
-  const subCat     = product.subCat?.subCat || product.subCat || null;
+  const brand = product.brand || "—";
+  const subCat = product.subCat?.subCat || product.subCat || null;
 
   const alreadyInCart = isInCart?.(product._id);
-  const isWished      = isInMyList?.(product._id);
+  const isWished = isInMyList?.(product._id);
 
   // ── Add to Cart ──
   const handleAddToCart = async () => {
-    if (!isLoggedIn) { navigate("/login"); return; }
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
     if (!inStock) return;
     setAdding(true);
     try {
@@ -58,7 +76,10 @@ const ProductQuickView = ({ product, onClose }) => {
 
   // ── Wishlist toggle ──
   const handleWishlist = async () => {
-    if (!isLoggedIn) { navigate("/login"); return; }
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
     setWishLoading(true);
     try {
       if (isWished) {
@@ -75,15 +96,21 @@ const ProductQuickView = ({ product, onClose }) => {
   return (
     <div
       className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      style={{ backgroundColor: `rgba(0,0,0,${visible ? 0.65 : 0})`, transition: "background-color 0.3s ease" }}
+      style={{
+        backgroundColor: `rgba(0,0,0,${visible ? 0.65 : 0})`,
+        transition: "background-color 0.3s ease",
+      }}
       onClick={handleClose}
     >
       <div
         className="bg-white w-full max-w-[920px] max-h-[92vh] overflow-y-auto rounded-3xl relative shadow-2xl"
         style={{
-          transform: visible ? "scale(1) translateY(0)" : "scale(0.94) translateY(24px)",
+          transform: visible
+            ? "scale(1) translateY(0)"
+            : "scale(0.94) translateY(24px)",
           opacity: visible ? 1 : 0,
-          transition: "transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease",
+          transition:
+            "transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -99,14 +126,17 @@ const ProductQuickView = ({ product, onClose }) => {
         </button>
 
         <div className="flex flex-col md:flex-row gap-0">
-
           {/* LEFT: Image Gallery */}
           <div className="w-full md:w-[45%] bg-gray-50 rounded-bl-3xl p-6 flex flex-col gap-4">
-            <div className="relative rounded-2xl overflow-hidden bg-white border border-gray-100 flex items-center justify-center" style={{ height: "340px" }}>
-              {selectedImg
-                ? <ProductImageZoom Image={selectedImg} />
-                : <div className="text-gray-300 text-sm">No Image</div>
-              }
+            <div
+              className="relative rounded-2xl overflow-hidden bg-white border border-gray-100 flex items-center justify-center"
+              style={{ height: "340px" }}
+            >
+              {selectedImg ? (
+                <ProductImageZoom Image={selectedImg} />
+              ) : (
+                <div className="text-gray-300 text-sm">No Image</div>
+              )}
               <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
                 {discount > 0 && (
                   <span className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow">
@@ -120,11 +150,13 @@ const ProductQuickView = ({ product, onClose }) => {
                 )}
               </div>
               <div className="absolute top-3 right-3 z-10">
-                <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full ${
-                  inStock
-                    ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
-                    : "bg-red-50 text-red-500 border border-red-200"
-                }`}>
+                <span
+                  className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full ${
+                    inStock
+                      ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                      : "bg-red-50 text-red-500 border border-red-200"
+                  }`}
+                >
                   {inStock ? "In Stock" : "Out of Stock"}
                 </span>
               </div>
@@ -133,12 +165,20 @@ const ProductQuickView = ({ product, onClose }) => {
             {images.length > 1 && (
               <div className="flex gap-2 flex-wrap">
                 {images.map((img, idx) => (
-                  <button key={idx} onClick={() => setSelectedImg(img)}
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImg(img)}
                     className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-all duration-200 ${
-                      selectedImg === img ? "border-blue-500 scale-105 shadow-md" : "border-gray-200 hover:border-gray-400"
+                      selectedImg === img
+                        ? "border-blue-500 scale-105 shadow-md"
+                        : "border-gray-200 hover:border-gray-400"
                     }`}
                   >
-                    <img src={img} alt={`thumb-${idx}`} className="w-full h-full object-cover" />
+                    <img
+                      src={img}
+                      alt={`thumb-${idx}`}
+                      className="w-full h-full object-cover"
+                    />
                   </button>
                 ))}
               </div>
@@ -147,7 +187,6 @@ const ProductQuickView = ({ product, onClose }) => {
 
           {/* RIGHT: Product Info */}
           <div className="w-full md:w-[55%] p-7 flex flex-col gap-5">
-
             {/* Category + Brand */}
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] font-black uppercase tracking-[2px] text-blue-500 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">
@@ -172,12 +211,16 @@ const ProductQuickView = ({ product, onClose }) => {
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-0.5">
                 {[1, 2, 3, 4, 5].map((s) =>
-                  s <= rating
-                    ? <FaStar key={s} size={13} className="text-amber-400" />
-                    : <FaRegStar key={s} size={13} className="text-gray-200" />
+                  s <= rating ? (
+                    <FaStar key={s} size={13} className="text-amber-400" />
+                  ) : (
+                    <FaRegStar key={s} size={13} className="text-gray-200" />
+                  ),
                 )}
               </div>
-              <span className="text-[12px] text-gray-400 font-semibold">{rating}.0 / 5.0</span>
+              <span className="text-[12px] text-gray-400 font-semibold">
+                {rating}.0 / 5.0
+              </span>
             </div>
 
             {/* Price */}
@@ -209,38 +252,73 @@ const ProductQuickView = ({ product, onClose }) => {
             {/* Quick info */}
             <div className="grid grid-cols-2 gap-2">
               {[
-                { label: "Stock",    value: product.countInStock || 0, unit: "pcs" },
+                {
+                  label: "Stock",
+                  value: product.countInStock || 0,
+                  unit: "pcs",
+                },
                 { label: "Location", value: product.location || "—" },
-                product.productRam?.name    && { label: "RAM",    value: product.productRam.name    },
-                product.productSize?.name   && { label: "Size",   value: product.productSize.name   },
-                product.productWeight?.name && { label: "Weight", value: product.productWeight.name },
-              ].filter(Boolean).map((item, i) => (
-                <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
-                  <Check size={12} className="text-emerald-500 shrink-0" />
-                  <span className="text-[11px] text-gray-400">{item.label}:</span>
-                  <span className="text-[11px] font-bold text-gray-700 ml-auto">
-                    {item.value}{item.unit ? ` ${item.unit}` : ""}
-                  </span>
-                </div>
-              ))}
+                product.productRam?.name && {
+                  label: "RAM",
+                  value: product.productRam.name,
+                },
+                product.productSize?.name && {
+                  label: "Size",
+                  value: product.productSize.name,
+                },
+                product.productWeight?.name && {
+                  label: "Weight",
+                  value: product.productWeight.name,
+                },
+              ]
+                .filter(Boolean)
+                .map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2"
+                  >
+                    <Check size={12} className="text-emerald-500 shrink-0" />
+                    <span className="text-[11px] text-gray-400">
+                      {item.label}:
+                    </span>
+                    <span className="text-[11px] font-bold text-gray-700 ml-auto">
+                      {item.value}
+                      {item.unit ? ` ${item.unit}` : ""}
+                    </span>
+                  </div>
+                ))}
             </div>
 
             {/* Quantity + Add to Cart */}
             <div className="flex items-center gap-3">
               <div className="flex items-center bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2 gap-3">
                 <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  onClick={() => {
+                    if (!isLoggedIn) {
+                      navigate("/login");
+                      return;
+                    } // 👈
+                    setQuantity(Math.max(1, quantity - 1));
+                  }}
                   className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-400 transition-all"
                 >
                   <Minus size={13} />
                 </button>
-                <span className="text-[15px] font-black text-gray-800 min-w-[24px] text-center">{quantity}</span>
+                <span className="text-[15px] font-black text-gray-800 min-w-[24px] text-center">
+                  {quantity}
+                </span>
                 <button
                   onClick={() => {
+                    if (!isLoggedIn) {
+                      navigate("/login");
+                      return;
+                    } // 👈
                     if (quantity < product.countInStock) {
                       setQuantity(quantity + 1);
                     } else {
-                      toast.error(`সর্বোচ্চ ${product.countInStock} টি add করা যাবে`);
+                      toast.error(
+                        `সর্বোচ্চ ${product.countInStock} টি add করা যাবে`,
+                      );
                     }
                   }}
                   className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-400 transition-all"
@@ -256,16 +334,24 @@ const ProductQuickView = ({ product, onClose }) => {
                   alreadyInCart
                     ? "bg-emerald-500 text-white shadow-emerald-200"
                     : inStock
-                    ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:shadow-blue-200 hover:scale-[1.02]"
-                    : "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
+                      ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:shadow-blue-200 hover:scale-[1.02]"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
                 }`}
               >
-                {adding
-                  ? <><ShoppingCart size={16} className="animate-pulse" /> Adding...</>
-                  : alreadyInCart
-                  ? <><Check size={16} /> In Cart</>
-                  : <><ShoppingCart size={16} /> Add to Cart</>
-                }
+                {adding ? (
+                  <>
+                    <ShoppingCart size={16} className="animate-pulse" />{" "}
+                    Adding...
+                  </>
+                ) : alreadyInCart ? (
+                  <>
+                    <Check size={16} /> In Cart
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart size={16} /> Add to Cart
+                  </>
+                )}
               </button>
             </div>
 
@@ -292,7 +378,6 @@ const ProductQuickView = ({ product, onClose }) => {
                 <Share2 size={15} /> Share
               </button>
             </div>
-
           </div>
         </div>
       </div>
@@ -301,32 +386,6 @@ const ProductQuickView = ({ product, onClose }) => {
 };
 
 export default ProductQuickView;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // import React, { useState, useEffect, useContext } from "react";
 // import { Heart, Minus, Plus, X, ShoppingCart, ArrowLeftRight, Share2, Check } from "lucide-react";
@@ -624,24 +683,6 @@ export default ProductQuickView;
 // };
 
 // export default ProductQuickView;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // import React, { useState, useEffect } from "react";
 // import { Heart, Minus, Plus, X, ShoppingCart, ArrowLeftRight, Share2, Check } from "lucide-react";
