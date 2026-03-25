@@ -8,17 +8,15 @@ const OrderSuccess = () => {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("orderId");
 
-  const { clearCart } = useCart();
+  // const { clearCart } = useCart();
 
   const [visible, setVisible] = useState(false);
   const [copied, setCopied]   = useState(false);
 
-  useEffect(() => {
-    clearCart();
-
-    const t = setTimeout(() => setVisible(true), 100);
-    return () => clearTimeout(t);
-  }, []);
+useEffect(() => {
+  const t = setTimeout(() => setVisible(true), 100);
+  return () => clearTimeout(t);
+}, []);
 
   const handleCopy = () => {
     if (!orderId) return;
