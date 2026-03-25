@@ -8,15 +8,13 @@ const OrderSuccess = () => {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("orderId");
 
-  const { resetCart } = useCart();
+  const { clearCart } = useCart();
 
   const [visible, setVisible] = useState(false);
   const [copied, setCopied]   = useState(false);
 
   useEffect(() => {
-    // Page load হওয়ার সাথে সাথে cart clear করো
-    // COD তে Checkout এ clear হয়, SSLCommerz এ এখানে clear হয়
-    resetCart();
+    clearCart();
 
     const t = setTimeout(() => setVisible(true), 100);
     return () => clearTimeout(t);
