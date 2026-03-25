@@ -8,7 +8,7 @@ import { placeOrderApi, initPaymentApi } from "../../utils/api/orderApi";
 import toast from "react-hot-toast";
 
 const Checkout = () => {
-  const { cartItems, cartTotal, resetCart } = useCart();
+  const { cartItems, cartTotal, clearCart  } = useCart();
   const { user, token } = useAuth();
   const navigate = useNavigate();
 
@@ -94,7 +94,7 @@ const Checkout = () => {
         }
       } else {
         // COD বা Bank — cart clear করো এবং success page এ redirect
-        resetCart();
+        await clearCart();
         toast.success("Order placed successfully!");
         navigate(`/order-success?orderId=${orderId}`);
       }

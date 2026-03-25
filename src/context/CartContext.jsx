@@ -1,6 +1,12 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
-import { getCart, addToCartApi, removeFromCartApi, updateCartApi } from "../utils/api/cartApi";
+import {
+  getCart,
+  addToCartApi,
+  removeFromCartApi,
+  updateCartApi,
+  clearCartApi,
+} from "../utils/api/cartApi";
 import toast from "react-hot-toast";
 
 export const CartContext = createContext();
@@ -40,7 +46,7 @@ export const CartProvider = ({ children }) => {
     }
 
     const existing = cartItems.find(
-      (item) => item.productId?.toString() === product._id?.toString()
+      (item) => item.productId?.toString() === product._id?.toString(),
     );
 
     if (existing) {
@@ -61,7 +67,7 @@ export const CartProvider = ({ children }) => {
           countInStock: product.countInStock || 0,
           productId: product._id,
         },
-        token
+        token,
       );
 
       setCartItems((prev) => [...prev, data.cart]);
@@ -71,6 +77,14 @@ export const CartProvider = ({ children }) => {
       const msg = err.response?.data?.message || "Failed to add to cart";
       toast.error(msg);
       return false;
+    }
+  };
+  const clearCart = async () => {
+    try {
+      await clearCartApi(token); // backend clear
+      setCartItems([]); // frontend clear
+    } catch (err) {
+      console.error("Failed to clear cart:", err);
     }
   };
 
@@ -95,7 +109,7 @@ export const CartProvider = ({ children }) => {
     try {
       const data = await updateCartApi(cartItemId, { quantity, price }, token);
       setCartItems((prev) =>
-        prev.map((item) => (item._id === cartItemId ? data.cart : item))
+        prev.map((item) => (item._id === cartItemId ? data.cart : item)),
       );
     } catch (err) {
       toast.error("Failed to update cart");
@@ -114,10 +128,14 @@ export const CartProvider = ({ children }) => {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const isInCart = (productId) =>
-    cartItems.some((item) => item.productId?.toString() === productId?.toString());
+    cartItems.some(
+      (item) => item.productId?.toString() === productId?.toString(),
+    );
 
   const getCartItem = (productId) =>
-    cartItems.find((item) => item.productId?.toString() === productId?.toString());
+    cartItems.find(
+      (item) => item.productId?.toString() === productId?.toString(),
+    );
 
   return (
     <CartContext.Provider
@@ -133,6 +151,7 @@ export const CartProvider = ({ children }) => {
         isInCart,
         getCartItem,
         resetCart,
+        clearCart,
       }}
     >
       {children}
@@ -141,17 +160,6 @@ export const CartProvider = ({ children }) => {
 };
 
 export const useCart = () => useContext(CartContext);
-
-
-
-
-
-
-
-
-
-
-
 
 // import { createContext, useContext, useState, useEffect } from "react";
 // import { useAuth } from "./AuthContext";
@@ -294,21 +302,6 @@ export const useCart = () => useContext(CartContext);
 // };
 
 // export const useCart = () => useContext(CartContext);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // import { createContext, useContext, useState, useEffect } from "react";
 // import { useAuth } from "./AuthContext";

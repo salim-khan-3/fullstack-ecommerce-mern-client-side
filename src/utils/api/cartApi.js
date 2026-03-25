@@ -19,7 +19,12 @@ export const addToCartApi = async (cartData, token) => {
   });
   return res.data;
 };
-
+export const clearCartApi = async (token) => {
+  const res = await axiosInstance.delete("/cart/clear-cart/all", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
 // ==========================
 // REMOVE FROM CART
 // ==========================
