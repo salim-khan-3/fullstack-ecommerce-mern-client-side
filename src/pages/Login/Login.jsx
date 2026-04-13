@@ -6,10 +6,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
-
+import GoogleLoginButton from "../../Components/Shared/GoogleLoginButton/GoogleLoginButton";
 const Login = () => {
   const { setIsShowHeaderFooter } = useContext(MyContext);
-  const { signin } = useAuth();
+  const { signin,loginWithGoogle } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -173,16 +173,12 @@ const Login = () => {
             </p>
             <div className="flex-1 border-t border-gray-300"></div>
           </div>
-          <button className="w-full flex cursor-pointer items-center justify-center gap-3 border border-gray-300 py-3 rounded-md hover:bg-gray-50 transition-all shadow-sm active:scale-[0.98]">
-            <img
-              src="https://www.svgrepo.com/show/475656/google-color.svg"
-              className="w-5 h-5"
-              alt="Google"
-            />
-            <span className="text-gray-700 font-bold text-sm">
-              Sign In With Google
-            </span>
-          </button>
+          <GoogleLoginButton
+            onSuccess={(token, user) => {
+              loginWithGoogle(token, user);
+              navigate("/");
+            }}
+          />
         </div>
       </div>
     </div>

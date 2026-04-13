@@ -42,7 +42,12 @@ export const AuthProvider = ({ children }) => {
     callbacks.resetMyList?.();
     toast.success("Logged out successfully");
   };
-
+  const loginWithGoogle = (token, userData) => {
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(userData));
+    setToken(token);
+    setUser(userData);
+  };
   // ==========================
   // UPDATE USER
   // ==========================
@@ -54,7 +59,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, isLoggedIn, signin, signup, logout, updateUser }}
+      value={{ user, token, isLoggedIn, signin, signup, logout, updateUser, loginWithGoogle }}
     >
       {children}
     </AuthContext.Provider>
