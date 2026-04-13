@@ -113,7 +113,7 @@ const Sidebar = ({ products, categoryId, selectedSubCat, onSubCatChange, onFilte
       <div className="p-6 rounded-lg">
 
         {/* SubCategories */}
-        <h2 className="text-gray-700 font-bold text-lg mb-3 tracking-wide uppercase">
+        <h2 className="text-gray-700 font-bold text-sm mb-3 tracking-wide uppercase">
           Product Categories
         </h2>
         <div

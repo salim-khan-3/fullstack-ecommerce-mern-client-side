@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import Sidebar from "./Sidebar/Sidebar";
 import ProductControls from "./ProductControls/ProductControls";
-import HeroBanner from "./HeroBanner/HeroBanner";
 import SingleProductCard from "../../Components/cards/SingleProductCard/SingleProductCard";
 import ProductCard from "../Home/FeaturedProduct/ProductCard";
 import ProductQuickView from "../Home/ProductQuickView/ProductQuickView";
@@ -139,13 +138,6 @@ const Listing = () => {
 
           <div className="flex-1 min-w-0">
 
-            {/* HeroBanner — category page এ দেখাবে, search এ না */}
-            {!searchQuery && (
-              <div className="hidden lg:block">
-                <HeroBanner category={category} />
-              </div>
-            )}
-
             {/* Search result title */}
             {searchQuery && (
               <div className="mb-4">
@@ -243,9 +235,6 @@ const Listing = () => {
 };
 
 export default Listing;
-
-
-
 
 
 
