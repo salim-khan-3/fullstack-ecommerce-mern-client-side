@@ -102,7 +102,7 @@ const Footer = () => {
         }
       `}</style>
 
-      <div className="ft-root container mx-auto max-w-7xl">
+      <div className="ft-root container mx-auto ">
 
         {/* ── Top Section ── */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 pb-12">
