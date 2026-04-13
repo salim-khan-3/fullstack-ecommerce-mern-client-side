@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import Logo from "../Logo/Logo";
 
 const Footer = () => {
   const year = new Date().getFullYear();
@@ -108,9 +109,7 @@ const Footer = () => {
 
           {/* Brand Column */}
           <div className="lg:col-span-2">
-            <h2 className="ft-display text-3xl font-black text-white mb-4 tracking-tight">
-              Shop<span className="text-[#2bbef9]">.</span>BD
-            </h2>
+            <Logo></Logo>
             <p className="text-gray-400 text-sm leading-relaxed max-w-xs mb-6">
               Bangladesh এর সেরা অনলাইন শপিং প্ল্যাটফর্ম। সেরা পণ্য, সেরা দাম, দ্রুত ডেলিভারি।
             </p>
