@@ -64,7 +64,7 @@ const PopularProduct = () => {
               {products.map((product) => (
                 <div
                   key={product._id}
-                  className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] md:flex-[0_0_33.33%] lg:flex-none lg:w-full px-2 lg:px-0"
+                  className="flex-[0_0_50%] min-w-0 md:flex-[0_0_33.33%] lg:flex-none lg:w-full px-2 lg:px-0"
                 >
                   <ProductCard product={product} onQuickView={setSelectedProduct} />
                 </div>
@@ -85,8 +85,6 @@ const PopularProduct = () => {
 };
 
 export default PopularProduct;
-
-
 
 
 
