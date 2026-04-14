@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { getProductsByCategory } from "../../../utils/api/productApi";
 import PopularProductHeader from "./PopularProductHeader";
@@ -9,6 +9,13 @@ const PopularProduct = () => {
   const [products, setProducts]               = useState([]);
   const [loadingProds, setLoadingProds]       = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [windowWidth, setWindowWidth]         = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const [emblaRef] = useEmblaCarousel({
     breakpoints: { "(min-width: 1024px)": { active: false } },
@@ -64,7 +71,8 @@ const PopularProduct = () => {
               {products.map((product) => (
                 <div
                   key={product._id}
-                  className="flex-[0_0_50%] min-w-0 md:flex-[0_0_33.33%] lg:flex-none lg:w-full px-2 lg:px-0"
+                  className="flex-[0_0_100%] min-w-0 md:flex-[0_0_33.33%] lg:flex-none lg:w-full px-2 lg:px-0"
+                  style={{ flex: windowWidth >= 425 && windowWidth < 768 ? "0 0 50%" : undefined }}
                 >
                   <ProductCard product={product} onQuickView={setSelectedProduct} />
                 </div>
@@ -85,10 +93,6 @@ const PopularProduct = () => {
 };
 
 export default PopularProduct;
-
-
-
-
 
 
 
