@@ -272,7 +272,7 @@ const handleImageUpload = async (e) => {
 
             {/* ── Profile Tab ── */}
             {activeTab === "profile" && (
-              <div className="max-w-lg mx-auto space-y-4">
+              <div className="w-full space-y-4">
                 <div>
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Personal Information</p>
                   <div className="space-y-3">
@@ -315,7 +315,7 @@ const handleImageUpload = async (e) => {
 
             {/* ── Security Tab ── */}
             {activeTab === "security" && (
-              <div className="max-w-lg mx-auto space-y-4">
+              <div className="w-full space-y-4">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Change Password</p>
                 <div className="space-y-3">
                   {[
