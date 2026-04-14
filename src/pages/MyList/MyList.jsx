@@ -29,7 +29,7 @@ const MyList = () => {
   );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 min-h-screen bg-white">
+    <div className="container mx-auto px-4 sm:px-6 py-10 min-h-screen bg-white">
 
       {/* Header */}
       <div className="mb-6">
