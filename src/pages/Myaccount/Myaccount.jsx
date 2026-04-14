@@ -166,7 +166,7 @@ const handleImageUpload = async (e) => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-5xl mx-auto">
+      <div className="container mx-auto">
 
         {/* ── Top Profile Card ── */}
         <div className="bg-white rounded-3xl p-8 mb-6 shadow-sm border border-gray-100">
