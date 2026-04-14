@@ -56,7 +56,7 @@ const ProductCard = ({ product, onQuickView }) => {
   };
 
   return (
-    <div className="w-full p-2 max-w-[280px]">
+    <div className="w-full p-2 ]">
       <div
         className="group bg-[#F1F1F1] rounded-[15px] overflow-hidden border border-gray-200 shadow-sm cursor-pointer transition-all duration-300"
         onClick={handleCardClick}
