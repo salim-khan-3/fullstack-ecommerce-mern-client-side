@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useContext } from "react";
+import React, { useState, useRef, useEffect, useContext, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { StoreContext } from "../../../context/StoreContext";
 
@@ -10,6 +10,23 @@ const PopularProductHeader = ({ onCategoryChange }) => {
 
   const tabsRef = useRef({});
   const navRef  = useRef(null);
+  const wrapRef = useRef(null);
+
+  // indicator position update — getBoundingClientRect দিয়ে real position
+  const updateIndicator = useCallback(() => {
+    if (!activeCategory) return;
+    const el   = tabsRef.current[activeCategory._id];
+    const wrap = wrapRef.current;
+    if (!el || !wrap) return;
+
+    const tabRect  = el.getBoundingClientRect();
+    const wrapRect = wrap.getBoundingClientRect();
+
+    setIndicatorStyle({
+      left:  tabRect.left - wrapRect.left,
+      width: tabRect.width,
+    });
+  }, [activeCategory]);
 
   // categories load হলে প্রথমটা select করো
   useEffect(() => {
@@ -19,20 +36,39 @@ const PopularProductHeader = ({ onCategoryChange }) => {
     }
   }, [categories]);
 
-  // indicator position update
+  // active category বদলালে indicator update করো
   useEffect(() => {
-    if (!activeCategory) return;
-    const el = tabsRef.current[activeCategory._id];
-    if (el) setIndicatorStyle({ left: el.offsetLeft, width: el.offsetWidth });
-  }, [activeCategory, categories]);
+    // scroll settle হওয়ার পর measure করো
+    const t = setTimeout(updateIndicator, 50);
+    return () => clearTimeout(t);
+  }, [updateIndicator]);
+
+  // scroll করলেও indicator সঠিক থাকবে
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    nav.addEventListener("scroll", updateIndicator);
+    return () => nav.removeEventListener("scroll", updateIndicator);
+  }, [updateIndicator]);
+
+  // window resize হলে indicator update করো
+  useEffect(() => {
+    window.addEventListener("resize", updateIndicator);
+    return () => window.removeEventListener("resize", updateIndicator);
+  }, [updateIndicator]);
 
   const handleSelect = (cat) => {
     setActiveCategory(cat);
     onCategoryChange?.(cat);
+    // selected tab টা view এ আনো
+    const el = tabsRef.current[cat._id];
+    el?.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
   };
 
   const scrollNav = (dir) => {
     navRef.current?.scrollBy({ left: dir * 120, behavior: "smooth" });
+    // scroll animate শেষে indicator update
+    setTimeout(updateIndicator, 350);
   };
 
   return (
@@ -46,12 +82,14 @@ const PopularProductHeader = ({ onCategoryChange }) => {
           position: absolute; bottom: 0; height: 2.5px;
           background: linear-gradient(90deg, #3b82f6, #8b5cf6);
           border-radius: 99px;
+          pointer-events: none;
           transition: left 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s cubic-bezier(0.4,0,0.2,1);
         }
         .pp-tab {
           position: relative; cursor: pointer; white-space: nowrap;
           padding: 10px 4px; font-size: 13px; font-weight: 500;
           transition: color 0.2s; border: none; background: none; outline: none;
+          flex-shrink: 0;
         }
         .pp-tab.active { color: #3b82f6; font-weight: 700; }
         .pp-tab:not(.active) { color: #6b7280; }
@@ -84,12 +122,16 @@ const PopularProductHeader = ({ onCategoryChange }) => {
 
           {/* Right — Category Tabs */}
           <div className="flex items-center gap-1 min-w-0 flex-1 sm:justify-end">
-            <button onClick={() => scrollNav(-1)}
-              className="shrink-0 w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all">
+            <button
+              onClick={() => scrollNav(-1)}
+              className="shrink-0 w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all"
+            >
               <ChevronLeft size={14} />
             </button>
 
-            <div className="relative flex-1 overflow-hidden">
+            {/* ✅ wrapRef এখানে — indicator এর position এর reference */}
+            <div ref={wrapRef} className="relative flex-1 min-w-0 overflow-hidden">
+              {/* ✅ navRef scroll container */}
               <div ref={navRef} className="pp-nav flex items-center gap-5 overflow-x-auto pb-[2px]">
                 {categories.map((cat) => (
                   <button
@@ -101,15 +143,20 @@ const PopularProductHeader = ({ onCategoryChange }) => {
                     {cat.name}
                   </button>
                 ))}
-                <span className="pp-indicator" style={indicatorStyle} />
               </div>
+
+              {/* ✅ indicator এখন scroll div এর বাইরে, wrapRef এর সরাসরি child */}
+              <span className="pp-indicator" style={indicatorStyle} />
             </div>
 
-            <button onClick={() => scrollNav(1)}
-              className="shrink-0 w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all">
+            <button
+              onClick={() => scrollNav(1)}
+              className="shrink-0 w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:border-gray-300 transition-all"
+            >
               <ChevronRight size={14} />
             </button>
           </div>
+
         </div>
       </div>
     </>
@@ -117,12 +164,6 @@ const PopularProductHeader = ({ onCategoryChange }) => {
 };
 
 export default PopularProductHeader;
-
-
-
-
-
-
 
 
 
