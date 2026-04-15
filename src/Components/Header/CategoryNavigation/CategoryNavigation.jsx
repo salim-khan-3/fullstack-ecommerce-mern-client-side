@@ -1,6 +1,6 @@
 import React, { useContext, useRef, useState } from "react";
 import { ChevronDown, Grid3X3 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { StoreContext } from "../../../context/StoreContext";
 
 const CategoryNavigation = () => {
@@ -10,6 +10,7 @@ const CategoryNavigation = () => {
   const [openNav, setOpenNav]     = useState(null);
   const [hoveredCat, setHoveredCat] = useState(null);
 
+  const location   = useLocation();
   const isDesktop  = () => window.innerWidth >= 1024;
   const dropdownRef = useRef(null);
   const navigate    = useNavigate();
@@ -91,7 +92,11 @@ const CategoryNavigation = () => {
                 >
                   <Link
                     to={`/category/${cat._id}`}
-                    className="flex items-center gap-1 px-3 py-4 lg:py-5 text-[12px] lg:text-[13px] font-bold text-gray-600 hover:text-blue-600 uppercase tracking-tighter"
+                    className={`flex items-center gap-1 px-3 py-4 lg:py-5 text-[12px] lg:text-[13px] font-bold uppercase tracking-tighter transition-colors ${
+                      location.pathname === `/category/${cat._id}`
+                        ? "text-blue-600 border-b-2 border-blue-600"
+                        : "text-gray-600 hover:text-blue-600"
+                    }`}
                   >
                     {cat.name}
                     {subs.length > 0 && (
@@ -123,7 +128,6 @@ const CategoryNavigation = () => {
 };
 
 export default CategoryNavigation;
-
 
 
 
