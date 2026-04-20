@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
+import GoogleLoginButton from "../../Components/Shared/GoogleLoginButton/GoogleLoginButton";
 
 const SignUp = () => {
   const { setIsShowHeaderFooter } = useContext(MyContext);
