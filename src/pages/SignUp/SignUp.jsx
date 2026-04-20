@@ -208,7 +208,7 @@ const SignUp = () => {
             </p>
             <div className="flex-1 border-t border-gray-300"></div>
           </div>
-          <button className="w-full cursor-pointer flex items-center justify-center gap-3 border border-gray-300 py-3 rounded-md hover:bg-gray-50 transition-all shadow-sm active:scale-[0.98]">
+          {/* <button className="w-full cursor-pointer flex items-center justify-center gap-3 border border-gray-300 py-3 rounded-md hover:bg-gray-50 transition-all shadow-sm active:scale-[0.98]">
             <img
               src="https://www.svgrepo.com/show/475656/google-color.svg"
               className="w-5 h-5"
@@ -217,7 +217,13 @@ const SignUp = () => {
             <span className="text-gray-700 font-bold text-sm">
               Sign In With Google
             </span>
-          </button>
+          </button> */}
+           <GoogleLoginButton
+            onSuccess={(token, user) => {
+              loginWithGoogle(token, user);
+              navigate("/");
+            }}
+          />
         </div>
       </div>
     </div>
