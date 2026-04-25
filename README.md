@@ -81,8 +81,8 @@ A full-stack e-commerce web application built with the **MERN Stack**, featuring
 ## 👨‍💻 Author
 
 **Your Name**
-- GitHub: [@your-username](https://github.com/your-username)
-- LinkedIn: [your-linkedin](https://linkedin.com/in/your-linkedin)
+- GitHub: https://github.com/selimIslamDev
+- LinkedIn: www.linkedin.com/in/mdsalimislamdev
 
 ---
 
