@@ -80,7 +80,7 @@ A full-stack e-commerce web application built with the **MERN Stack**, featuring
 
 ## 👨‍💻 Author
 
-**Your Name**
+**MD SELIM ISLAM**
 - GitHub: https://github.com/selimIslamDev
 - LinkedIn: www.linkedin.com/in/mdsalimislamdev
 
